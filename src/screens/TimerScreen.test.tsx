@@ -9,6 +9,7 @@ jest.mock("../components/CircularTimer", () => ({
 
 jest.mock("../storage/historyRepo", () => ({
   historyRepo: {
+    getAll: jest.fn(async () => []),
     append: jest.fn(),
   },
 }));
@@ -19,6 +20,10 @@ jest.mock("../utils/chime", () => ({
 
 jest.mock("../utils/notifications", () => ({
   sendCompletionNotificationAsync: jest.fn(async () => undefined),
+}));
+
+jest.mock("../utils/analytics", () => ({
+  logAnalyticsEvent: jest.fn(async () => undefined),
 }));
 
 jest.mock("../state/timerStore", () => ({

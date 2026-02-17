@@ -9,6 +9,8 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.github.hunterbastian.minipomodoro",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true
     },
     "android": {
@@ -17,7 +19,16 @@
       }
     },
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-firebase/app",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
     ],
     "scheme": "mini-pomodoro"
   }

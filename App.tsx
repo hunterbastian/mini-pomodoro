@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { TabsNavigator } from "./src/navigation/Tabs";
+import { TimerScreen } from "./src/screens/TimerScreen";
 import { theme } from "./src/theme/tokens";
 import {
   configureNotificationHandler,
@@ -38,7 +38,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={styles.appRoot}>
-        <TabsNavigator />
+        <TimerScreen />
       </View>
     </SafeAreaProvider>
   );
