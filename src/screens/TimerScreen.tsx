@@ -57,6 +57,7 @@ const TABLET_BREAKPOINT = 768;
 const DESKTOP_BREAKPOINT = 1024;
 const TABLET_MAX_WIDTH = 650;
 const DESKTOP_MAX_WIDTH = 720;
+const DESKTOP_SHELL_MAX_WIDTH = 1180;
 
 export function TimerScreen() {
   const [runState, setRunState] = useState<PersistedRunState>(timerStore.getIdleState());
@@ -71,14 +72,26 @@ export function TimerScreen() {
   const isTablet = width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT;
   const isNarrow = width < 430;
   const horizontalInset = isDesktop ? theme.spacing.xl : isTablet ? theme.spacing.lg : theme.spacing.md;
-  const contentWidth = Math.max(
+  const stackedContentWidth = Math.max(
     280,
     Math.min(
       width - horizontalInset * 2,
-      isDesktop ? DESKTOP_MAX_WIDTH : isTablet ? TABLET_MAX_WIDTH : TABLET_MAX_WIDTH,
+      isTablet ? TABLET_MAX_WIDTH : DESKTOP_MAX_WIDTH,
     ),
   );
-  const timerSize = Math.max(208, Math.min(contentWidth - 64, isDesktop ? 294 : isTablet ? 270 : 250));
+  const desktopShellWidth = Math.max(
+    920,
+    Math.min(width - horizontalInset * 2, DESKTOP_SHELL_MAX_WIDTH),
+  );
+  const desktopHeroWidth = Math.min(620, Math.max(520, desktopShellWidth * 0.56));
+  const desktopHistoryWidth = desktopShellWidth - desktopHeroWidth - theme.spacing.lg;
+  const timerSize = Math.max(
+    208,
+    Math.min(
+      (isDesktop ? desktopHeroWidth : stackedContentWidth) - 72,
+      isDesktop ? 332 : isTablet ? 270 : 250,
+    ),
+  );
   const shouldUseNativeDriver = Platform.OS !== "web";
 
   const completionLockRef = useRef(false);
@@ -384,6 +397,77 @@ export function TimerScreen() {
     Math.ceil((runState.remainingSec / SESSION_DURATION_SEC) * signalDotCount),
   );
   const activeDotMotionStyle = runState.status === "running" ? { opacity: pulseAnim } : null;
+  const heroWidth = isDesktop ? desktopHeroWidth : stackedContentWidth;
+  const historyWidth = isDesktop ? desktopHistoryWidth : stackedContentWidth;
+  const modalWidth = Math.min(isDesktop ? desktopHistoryWidth : stackedContentWidth, 420);
+
+  const heroCard = (
+    <Animated.View
+      style={[
+        styles.heroSection,
+        {
+          opacity: heroOpacityAnim,
+          transform: [{ translateY: heroTranslateAnim }],
+        },
+      ]}
+    >
+      <View style={styles.signalRow}>
+        {Array.from({ length: signalDotCount }, (_, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.signalDot,
+              index < activeSignalDots && styles.signalDotActive,
+              index < activeSignalDots && activeDotMotionStyle,
+            ]}
+          />
+        ))}
+      </View>
+      <Text style={styles.kicker}>MINI POMODORO</Text>
+      <Text style={[styles.title, { fontSize: isDesktop ? 24 : 22 }]}>FOCUS MODE</Text>
+
+      <View style={styles.timerCard}>
+        <CircularTimer
+          remainingSec={runState.remainingSec}
+          size={timerSize}
+          totalSec={SESSION_DURATION_SEC}
+        />
+        <Text style={styles.statusText}>{subtitle}</Text>
+      </View>
+
+      <View style={[styles.controlsRow, isNarrow && styles.controlsRowStacked]}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handlePrimaryPress}
+          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
+        >
+          <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          disabled={resetDisabled}
+          onPress={handleResetPress}
+          style={({ pressed }) => [
+            styles.secondaryButton,
+            resetDisabled && styles.secondaryButtonDisabled,
+            pressed && !resetDisabled && styles.buttonPressed,
+          ]}
+        >
+          <Text
+            style={[
+              styles.secondaryButtonText,
+              resetDisabled && styles.secondaryButtonTextDisabled,
+            ]}
+          >
+            Reset
+          </Text>
+        </Pressable>
+      </View>
+
+      {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+    </Animated.View>
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -392,106 +476,89 @@ export function TimerScreen() {
         <View style={[styles.backgroundGlow, styles.backgroundGlowBottom]} />
       </View>
 
-      <FlatList
-        contentContainerStyle={[
-          styles.listContent,
-          {
-            paddingHorizontal: horizontalInset,
-            paddingTop: isDesktop ? theme.spacing.lg : theme.spacing.md,
-          },
-        ]}
-        data={entries}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={
-          <View style={{ width: contentWidth }}>
-            <Animated.View
-              style={[
-                styles.heroSection,
-                {
-                  opacity: heroOpacityAnim,
-                  transform: [{ translateY: heroTranslateAnim }],
-                },
-              ]}
-            >
-              <View style={styles.signalRow}>
-                {Array.from({ length: signalDotCount }, (_, index) => (
-                  <Animated.View
-                    key={index}
-                    style={[
-                      styles.signalDot,
-                      index < activeSignalDots && styles.signalDotActive,
-                      index < activeSignalDots && activeDotMotionStyle,
-                    ]}
-                  />
-                ))}
-              </View>
-              <Text style={styles.kicker}>MINI POMODORO</Text>
-              <Text style={[styles.title, { fontSize: isDesktop ? 24 : 22 }]}>FOCUS MODE</Text>
+      {isDesktop ? (
+        <View
+          style={[
+            styles.desktopShell,
+            {
+              paddingHorizontal: horizontalInset,
+              paddingTop: theme.spacing.lg,
+            },
+          ]}
+        >
+          <View style={[styles.desktopGrid, { width: desktopShellWidth }]}>
+            <View style={{ width: heroWidth }}>{heroCard}</View>
 
-              <View style={styles.timerCard}>
-                <CircularTimer
-                  remainingSec={runState.remainingSec}
-                  size={timerSize}
-                  totalSec={SESSION_DURATION_SEC}
-                />
-                <Text style={styles.statusText}>{subtitle}</Text>
-              </View>
+            <View style={[styles.desktopHistoryPanel, { width: historyWidth }]}>
+              <Animated.View style={[styles.historyHeaderDesktop, { opacity: sectionOpacityAnim }]}>
+                <Text style={styles.historyTitle}>SESSION LOG</Text>
+                <Text style={styles.historySubtitle}>COMPLETED 25-MINUTE BLOCKS</Text>
+                {!!historyErrorMessage && (
+                  <Text style={styles.errorText}>{historyErrorMessage}</Text>
+                )}
+              </Animated.View>
 
-              <View style={[styles.controlsRow, isNarrow && styles.controlsRowStacked]}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handlePrimaryPress}
-                  style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
-                >
-                  <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
-                </Pressable>
-
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={resetDisabled}
-                  onPress={handleResetPress}
-                  style={({ pressed }) => [
-                    styles.secondaryButton,
-                    resetDisabled && styles.secondaryButtonDisabled,
-                    pressed && !resetDisabled && styles.buttonPressed,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.secondaryButtonText,
-                      resetDisabled && styles.secondaryButtonTextDisabled,
-                    ]}
-                  >
-                    Reset
-                  </Text>
-                </Pressable>
-              </View>
-
-              {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-            </Animated.View>
-
-            <Animated.View style={[styles.historyHeader, { opacity: sectionOpacityAnim }]}>
-              <Text style={styles.historyTitle}>SESSION LOG</Text>
-              <Text style={styles.historySubtitle}>COMPLETED 25-MINUTE BLOCKS</Text>
-              {!!historyErrorMessage && (
-                <Text style={styles.errorText}>{historyErrorMessage}</Text>
-              )}
-            </Animated.View>
+              <FlatList
+                contentContainerStyle={styles.desktopHistoryListContent}
+                data={entries}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={
+                  <View style={[styles.emptyWrap, styles.emptyWrapDesktop]}>
+                    <Text style={styles.emptyTitle}>NO SESSIONS YET</Text>
+                    <Text style={styles.emptySubtitle}>
+                      COMPLETE ONE FOCUS BLOCK TO START THE LOG.
+                    </Text>
+                  </View>
+                }
+                renderItem={({ item }) => (
+                  <View style={[styles.row, styles.rowFullWidth]}>
+                    <Text style={styles.rowDate}>{formatDate(item.completedAtISO)}</Text>
+                    <Text style={styles.rowMeta}>Started {formatTime(item.startedAtISO)}</Text>
+                  </View>
+                )}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
           </View>
-        }
-        ListEmptyComponent={
-          <View style={[styles.emptyWrap, { width: contentWidth }]}>
-            <Text style={styles.emptyTitle}>NO SESSIONS YET</Text>
-            <Text style={styles.emptySubtitle}>COMPLETE ONE FOCUS BLOCK TO START THE LOG.</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={[styles.row, { width: contentWidth }]}>
-            <Text style={styles.rowDate}>{formatDate(item.completedAtISO)}</Text>
-            <Text style={styles.rowMeta}>Started {formatTime(item.startedAtISO)}</Text>
-          </View>
-        )}
-      />
+        </View>
+      ) : (
+        <FlatList
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingHorizontal: horizontalInset,
+              paddingTop: theme.spacing.md,
+            },
+          ]}
+          data={entries}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={
+            <View style={{ width: stackedContentWidth }}>
+              {heroCard}
+
+              <Animated.View style={[styles.historyHeader, { opacity: sectionOpacityAnim }]}>
+                <Text style={styles.historyTitle}>SESSION LOG</Text>
+                <Text style={styles.historySubtitle}>COMPLETED 25-MINUTE BLOCKS</Text>
+                {!!historyErrorMessage && (
+                  <Text style={styles.errorText}>{historyErrorMessage}</Text>
+                )}
+              </Animated.View>
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={[styles.emptyWrap, { width: stackedContentWidth }]}>
+              <Text style={styles.emptyTitle}>NO SESSIONS YET</Text>
+              <Text style={styles.emptySubtitle}>COMPLETE ONE FOCUS BLOCK TO START THE LOG.</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View style={[styles.row, { width: stackedContentWidth }]}>
+              <Text style={styles.rowDate}>{formatDate(item.completedAtISO)}</Text>
+              <Text style={styles.rowMeta}>Started {formatTime(item.startedAtISO)}</Text>
+            </View>
+          )}
+        />
+      )}
 
       <Modal
         animationType="fade"
@@ -506,7 +573,7 @@ export function TimerScreen() {
               {
                 opacity: modalOpacityAnim,
                 transform: [{ scale: modalScaleAnim }],
-                width: Math.min(contentWidth, 420),
+                width: modalWidth,
               },
             ]}
           >
@@ -580,6 +647,32 @@ const styles = StyleSheet.create({
   controlsRowStacked: {
     flexDirection: "column",
   },
+  desktopGrid: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: theme.spacing.lg,
+  },
+  desktopHistoryListContent: {
+    paddingBottom: theme.spacing.sm,
+  },
+  desktopHistoryPanel: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    maxHeight: 620,
+    minHeight: 520,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    shadowColor: "#4A3A2A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+  },
+  desktopShell: {
+    alignItems: "center",
+    flex: 1,
+  },
   emptySubtitle: {
     color: theme.colors.textSecondary,
     fontFamily: theme.typography.mono,
@@ -599,6 +692,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: theme.spacing.sm,
     paddingHorizontal: theme.spacing.lg,
+  },
+  emptyWrapDesktop: {
+    marginTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
   },
   errorText: {
     color: theme.colors.danger,
@@ -624,6 +721,13 @@ const styles = StyleSheet.create({
   },
   historyHeader: {
     marginBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  historyHeaderDesktop: {
+    borderBottomColor: theme.colors.border,
+    borderBottomWidth: 1,
+    marginBottom: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
     paddingHorizontal: theme.spacing.xs,
   },
   historySubtitle: {
@@ -766,6 +870,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 14,
+  },
+  rowFullWidth: {
+    width: "100%",
   },
   rowDate: {
     color: theme.colors.textPrimary,

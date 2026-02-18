@@ -39,7 +39,7 @@ export function HistoryScreen() {
   const isDesktop = width >= 1024;
   const isTablet = width >= 768 && width < 1024;
   const horizontalInset = isDesktop ? theme.spacing.xl : isTablet ? theme.spacing.lg : theme.spacing.md;
-  const contentWidth = Math.max(280, Math.min(width - horizontalInset * 2, isDesktop ? 720 : 650));
+  const contentWidth = Math.max(280, Math.min(width - horizontalInset * 2, isDesktop ? 940 : 650));
   const shouldUseNativeDriver = Platform.OS !== "web";
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
