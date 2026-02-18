@@ -20,7 +20,6 @@
   "license": "ISC",
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",
-    "@expo-google-fonts/newsreader": "^0.4.1",
     "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-firebase/analytics": "^23.8.6",

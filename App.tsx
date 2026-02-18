@@ -1,11 +1,10 @@
 import { Manrope_400Regular, Manrope_600SemiBold } from "@expo-google-fonts/manrope";
-import { Newsreader_500Medium } from "@expo-google-fonts/newsreader";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { TimerScreen } from "./src/screens/TimerScreen";
+import { TabsNavigator } from "./src/navigation/Tabs";
 import { theme } from "./src/theme/tokens";
 import {
   configureNotificationHandler,
@@ -16,7 +15,6 @@ configureNotificationHandler();
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
-    Newsreader_500Medium,
     Manrope_400Regular,
     Manrope_600SemiBold,
   });
@@ -38,7 +36,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={styles.appRoot}>
-        <TimerScreen />
+        <TabsNavigator />
       </View>
     </SafeAreaProvider>
   );

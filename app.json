@@ -4,7 +4,7 @@
     "slug": "mini-pomodoro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -15,7 +15,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1E2220"
+        "backgroundColor": "#F3EEE4"
       }
     },
     "plugins": [

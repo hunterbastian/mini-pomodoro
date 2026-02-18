@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCnL_9EiVIS8BXJzwp6Kwa2CG5ZUJRcUEs</string>
+	<string>REPLACE_WITH_YOUR_FIREBASE_IOS_API_KEY</string>
 	<key>GCM_SENDER_ID</key>
-	<string>473297232191</string>
+	<string>REPLACE_WITH_YOUR_GCM_SENDER_ID</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.github.hunterbastian.minipomodoro</string>
 	<key>PROJECT_ID</key>
-	<string>mini-pomodoro-ed6da</string>
+	<string>REPLACE_WITH_YOUR_FIREBASE_PROJECT_ID</string>
 	<key>STORAGE_BUCKET</key>
-	<string>mini-pomodoro-ed6da.firebasestorage.app</string>
+	<string>REPLACE_WITH_YOUR_FIREBASE_STORAGE_BUCKET</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:473297232191:ios:4d2c9fb04d8d75fa3a738a</string>
+	<string>REPLACE_WITH_YOUR_GOOGLE_APP_ID</string>
 </dict>
 </plist>
