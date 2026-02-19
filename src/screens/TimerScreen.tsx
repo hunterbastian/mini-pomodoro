@@ -605,14 +605,6 @@ export function TimerScreen() {
   const rightPanel = (
     <View style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}>
       <ScrollView contentContainerStyle={styles.rightContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.taskHeader}>
-          <View style={styles.locationTag}>
-            <Text style={styles.locationCode}>q1</Text>
-            <Text style={styles.locationText}>Focus Grove</Text>
-          </View>
-          <Text style={styles.networkIcon}>📶</Text>
-        </View>
-
         <View style={styles.currentTaskCard}>
           <Text style={styles.currentTaskLabel}>Current Quest</Text>
           <Text style={styles.currentTaskTitle}>{activeQuest.title}</Text>
