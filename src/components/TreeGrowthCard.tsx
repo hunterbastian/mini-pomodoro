@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
   Platform,
   Pressable,
   StyleSheet,
@@ -21,9 +19,14 @@ type TreeGrowthCardProps = {
 
 type Sparkle = {
   color: number;
+  opacity: number;
   x: number;
   y: number;
 };
+
+const MOTION_STEP_MS = 120;
+const BURST_STEPS = 18;
+const STAGE_BOUNCE_STEPS = 8;
 
 const PALETTE: Record<number, string> = {
   1: "#3b2116",
@@ -115,20 +118,61 @@ function pickSprite(stage: number): number[][] {
   return SPRITE_MATURE;
 }
 
-function randomSeeded(seed: number): number {
-  const value = Math.sin(seed) * 10000;
-  return value - Math.floor(value);
-}
+function buildDriftParticles(
+  tick: number,
+  isActive: boolean,
+  burstSteps: number,
+  stage: number,
+): Sparkle[] {
+  const baseCount = isActive ? 8 : 4;
+  const burstCount = burstSteps > 0 ? 8 : 0;
+  const total = baseCount + burstCount;
+  const burstBonus = burstSteps > 0 ? BURST_STEPS - burstSteps : 0;
 
-function buildSparkles(seed: number, count: number): Sparkle[] {
-  return Array.from({ length: count }, (_, index) => {
-    const pointSeed = seed + index * 19;
+  return Array.from({ length: total }, (_, index) => {
+    const seed = stage * 13 + index * 17;
+    const travel = 16 + (seed % 28);
+    const speed = isActive ? 2 : 1;
+    const y = 58 - ((tick * speed + seed + burstBonus * 2) % travel);
+    const swayPhase = (tick + seed) % 6;
+    const sway = swayPhase < 2 ? -1 : swayPhase < 4 ? 0 : 1;
+    const x = Math.max(2, Math.min(60, 14 + ((seed * 7) % 34) + sway));
+    const color = (tick + index) % 5 === 0 ? 8 : 5;
+    const opacityBase = isActive ? 0.86 : 0.48;
+    const opacity = Math.max(0.2, Math.min(0.95, opacityBase - (58 - y) * 0.01));
+
     return {
-      color: randomSeeded(pointSeed) > 0.58 ? 8 : 5,
-      x: 18 + Math.floor(randomSeeded(pointSeed + 2) * 28),
-      y: 14 + Math.floor(randomSeeded(pointSeed + 4) * 32),
+      color,
+      opacity,
+      x: Math.floor(x),
+      y: Math.floor(Math.max(8, y)),
     };
   });
+}
+
+function leafShimmerColor(
+  index: number,
+  tick: number,
+  x: number,
+  y: number,
+  isActive: boolean,
+): string | null {
+  const base = PALETTE[index];
+  if (!base) {
+    return null;
+  }
+
+  if (index === 4 || index === 5) {
+    if ((x + y + tick) % 7 === 0) {
+      return PALETTE[index === 4 ? 5 : 4];
+    }
+
+    if (isActive && (x * 3 + y + tick) % 13 === 0) {
+      return PALETTE[8];
+    }
+  }
+
+  return base;
 }
 
 export function TreeGrowthCard({
@@ -137,102 +181,82 @@ export function TreeGrowthCard({
   isActive,
 }: TreeGrowthCardProps) {
   const normalizedProgress = clamp01(growthProgress);
-  const stage = useMemo(() => resolveStage(completedSessions, normalizedProgress), [completedSessions, normalizedProgress]);
+  const stage = useMemo(
+    () => resolveStage(completedSessions, normalizedProgress),
+    [completedSessions, normalizedProgress],
+  );
   const sprite = useMemo(() => pickSprite(stage), [stage]);
-  const [sparkSeed, setSparkSeed] = useState(0);
-  const pulse = useRef(new Animated.Value(1)).current;
-  const stageRef = useRef(stage);
+  const previousStageRef = useRef(stage);
+
+  const [tick, setTick] = useState(0);
+  const [burstSteps, setBurstSteps] = useState(0);
+  const [stageBounceSteps, setStageBounceSteps] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, MOTION_STEP_MS);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (burstSteps > 0) {
+      setBurstSteps((prev) => Math.max(0, prev - 1));
+    }
+
+    if (stageBounceSteps > 0) {
+      setStageBounceSteps((prev) => Math.max(0, prev - 1));
+    }
+  }, [burstSteps, stageBounceSteps, tick]);
+
+  useEffect(() => {
+    if (previousStageRef.current === stage) {
+      return;
+    }
+
+    previousStageRef.current = stage;
+    setStageBounceSteps(STAGE_BOUNCE_STEPS);
+  }, [stage]);
+
+  const triggerBurst = useCallback(() => {
+    if (stage >= 2) {
+      return;
+    }
+
+    setBurstSteps(BURST_STEPS);
+  }, [stage]);
+
+  const sparklePixels = useMemo(
+    () => buildDriftParticles(tick, isActive, burstSteps, stage),
+    [burstSteps, isActive, stage, tick],
+  );
 
   const waterValue = Math.round((normalizedProgress * 0.72 + Math.min(completedSessions, 5) / 5 * 0.28) * 50);
   const sunValue = Math.min(3, Math.max(0, Math.round(normalizedProgress * 3)));
   const buttonDisabled = stage >= 2;
   const buttonLabel = buttonDisabled ? "Harvest" : "Nurture";
 
-  const sparklePixels = useMemo(
-    () => buildSparkles(sparkSeed, isActive ? 14 : 4),
-    [isActive, sparkSeed],
-  );
-
-  useEffect(() => {
-    if (!isActive) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setSparkSeed((prev) => prev + 1);
-    }, 180);
-
-    return () => clearInterval(interval);
-  }, [isActive]);
-
-  useEffect(() => {
-    if (!isActive) {
-      pulse.stopAnimation();
-      pulse.setValue(1);
-      return;
-    }
-
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          duration: 420,
-          easing: Easing.inOut(Easing.quad),
-          toValue: 1.05,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          duration: 420,
-          easing: Easing.inOut(Easing.quad),
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    loop.start();
-    return () => loop.stop();
-  }, [isActive, pulse]);
-
-  useEffect(() => {
-    if (stage === stageRef.current) {
-      return;
-    }
-
-    stageRef.current = stage;
-    pulse.stopAnimation();
-    pulse.setValue(1);
-
-    Animated.sequence([
-      Animated.timing(pulse, {
-        duration: 130,
-        easing: Easing.out(Easing.quad),
-        toValue: 1.18,
-        useNativeDriver: true,
-      }),
-      Animated.spring(pulse, {
-        bounciness: 11,
-        speed: 16,
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [pulse, stage]);
-
-  const triggerBurst = useCallback(() => {
-    if (buttonDisabled) {
-      return;
-    }
-    setSparkSeed((prev) => prev + 12);
-  }, [buttonDisabled]);
+  const cadenceScale = isActive
+    ? [1, 1.02, 1.04, 1.02][tick % 4]!
+    : [1, 1, 1.01, 1][tick % 4]!;
+  const bounceScale = stageBounceSteps > 0 ? stageBounceSteps * 0.016 : 0;
+  const spriteScale = cadenceScale + bounceScale;
 
   const spriteWidth = sprite[0]?.length ?? 0;
   const spriteX = Math.floor((64 - spriteWidth) / 2);
-  const spriteY = stage === 0 ? 45 : stage === 1 ? 38 : 30;
+  const baseSpriteY = stage === 0 ? 45 : stage === 1 ? 38 : 30;
+  const idleBobOffset = stageBounceSteps > 0
+    ? (stageBounceSteps % 3 === 0 ? -2 : -1)
+    : isActive
+      ? (tick % 4 < 2 ? -1 : 0)
+      : (tick % 8 === 0 ? -1 : 0);
+  const spriteY = baseSpriteY + idleBobOffset;
 
   return (
     <View style={styles.card}>
       <View style={styles.viewport}>
-        <Animated.View style={[styles.canvasWrap, { transform: [{ scale: pulse }] }]}>
+        <View style={[styles.canvasWrap, { transform: [{ scale: spriteScale }] }]}>
           <Svg height="100%" shapeRendering="crispEdges" viewBox="0 0 64 64" width="100%">
             {Array.from({ length: 16 }).map((_, row) =>
               Array.from({ length: 16 }).map((__, col) => (
@@ -247,16 +271,23 @@ export function TreeGrowthCard({
               )),
             )}
 
-            <Rect fill="rgba(0,0,0,0.24)" height={2} width={spriteWidth - 4} x={spriteX + 2} y={spriteY + sprite.length - 1} />
+            <Rect
+              fill="rgba(0,0,0,0.24)"
+              height={2}
+              width={Math.max(2, spriteWidth - 4)}
+              x={spriteX + 2}
+              y={spriteY + sprite.length - 1}
+            />
 
             {sprite.map((row, y) =>
               row.map((index, x) => {
                 if (index === 0) return null;
-                const color = PALETTE[index];
-                if (!color) return null;
+                const fill = leafShimmerColor(index, tick, x, y, isActive);
+                if (!fill) return null;
+
                 return (
                   <Rect
-                    fill={color}
+                    fill={fill}
                     height={1}
                     key={`sprite-${x}-${y}-${index}`}
                     width={1}
@@ -270,16 +301,16 @@ export function TreeGrowthCard({
             {sparklePixels.map((spark, index) => (
               <Rect
                 fill={PALETTE[spark.color]}
-                fillOpacity={isActive ? (index % 3 === 0 ? 0.95 : 0.72) : 0.48}
+                fillOpacity={spark.opacity}
                 height={1}
-                key={`spark-${index}-${sparkSeed}`}
+                key={`spark-${index}-${tick}-${burstSteps}`}
                 width={1}
                 x={spark.x}
                 y={spark.y}
               />
             ))}
           </Svg>
-        </Animated.View>
+        </View>
 
         <View pointerEvents="none" style={[styles.godRays, WEB_GOD_RAYS_STYLE]} />
         <View pointerEvents="none" style={[styles.scanlines, WEB_SCANLINES_STYLE]} />

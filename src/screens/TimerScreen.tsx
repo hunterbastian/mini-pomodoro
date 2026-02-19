@@ -18,6 +18,7 @@ import { AchievementBadge } from "../components/AchievementBadge";
 import { CircularTimer } from "../components/CircularTimer";
 import { PixelSceneryBackground } from "../components/PixelSceneryBackground";
 import { QuestList, type QuestItem } from "../components/QuestList";
+import { StickerJournal } from "../components/StickerJournal";
 import { StarburstActionButton } from "../components/StarburstActionButton";
 import { TreeGrowthCard } from "../components/TreeGrowthCard";
 import { timerStore } from "../state/timerStore";
@@ -589,6 +590,8 @@ export function TimerScreen() {
           <Text style={styles.sunText}>{isFocusRunning ? "sunlight building" : "sunlight idle"}</Text>
         </View>
 
+        <Text style={styles.breatherCopy}>Settle in and take a breather.</Text>
+
         <StarburstActionButton
           isRunning={activeStatus === "running"}
           label={primaryActionText}
@@ -626,6 +629,7 @@ export function TimerScreen() {
         {!!historyErrorMessage && <Text style={styles.historyError}>{historyErrorMessage}</Text>}
 
         <AchievementBadge completedSessions={entries.length} />
+        <StickerJournal completedSessions={entries.length} />
       </ScrollView>
     </View>
   );
@@ -724,6 +728,15 @@ const styles = StyleSheet.create({
   },
   btnPillSecondary: {
     minHeight: 50,
+  },
+  breatherCopy: {
+    color: "#6a5037",
+    fontFamily: theme.typography.body,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    marginBottom: theme.spacing.md,
+    textAlign: "center",
+    textTransform: "uppercase",
   },
   btnPillText: {
     color: theme.colors.textPrimary,
