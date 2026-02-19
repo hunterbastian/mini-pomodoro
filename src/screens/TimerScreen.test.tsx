@@ -83,14 +83,14 @@ describe("TimerScreen", () => {
       expect(timerStore.hydrate).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.press(screen.getByText("Start session"));
+    fireEvent.press(screen.getByLabelText("Primary timer action"));
 
     await waitFor(() => {
       expect(timerStore.start).toHaveBeenCalledTimes(1);
       expect(screen.getByText("Pause")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Pause"));
+    fireEvent.press(screen.getByLabelText("Primary timer action"));
 
     await waitFor(() => {
       expect(timerStore.pause).toHaveBeenCalledTimes(1);
