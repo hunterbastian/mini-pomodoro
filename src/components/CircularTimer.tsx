@@ -14,6 +14,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, G, Line, RadialGradient, Stop } from "react-native-svg";
 
+import { PixelRollingDigits } from "./PixelRollingDigits";
 import { theme } from "../theme/tokens";
 import { formatSeconds } from "../utils/time";
 
@@ -55,7 +56,7 @@ export function CircularTimer({
   const progress     = totalSec <= 0 ? 0 : Math.max(0, Math.min(1, remainingSec / totalSec));
   const dashOffset   = circumference * (1 - progress);
 
-  const timeFontSize = Math.max(34, Math.floor(size * 0.19));
+  const timeFontSize = Math.max(34, Math.floor(size * 0.2));
   const captionSize  = Math.max(9,  Math.floor(size * 0.042));
 
   const outerRadius = radius + strokeWidth / 2 + RING.outerRingGap;
@@ -171,9 +172,11 @@ export function CircularTimer({
 
       {/* Text overlay */}
       <View style={styles.labelWrap}>
-        <Text style={[styles.timeLabel, { fontSize: timeFontSize }]}>
-          {formatSeconds(remainingSec)}
-        </Text>
+        <PixelRollingDigits
+          fontSize={timeFontSize}
+          plateStyle={styles.digitsPlate}
+          value={formatSeconds(remainingSec)}
+        />
         <Text style={[styles.caption, { fontSize: captionSize }]}>focus session</Text>
       </View>
     </View>
@@ -193,11 +196,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position:       "absolute",
   },
-  timeLabel: {
-    color:       theme.colors.textPrimary,
-    fontFamily:  theme.typography.heading,
-    fontVariant: ["tabular-nums"],
-    letterSpacing: 0.6,
+  digitsPlate: {
+    borderRadius: theme.radius.sm,
+    marginBottom: 4,
   },
   wrapper: {
     alignItems:     "center",
