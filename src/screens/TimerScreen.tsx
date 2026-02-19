@@ -666,7 +666,7 @@ export function TimerScreen() {
 const styles = StyleSheet.create({
   backdropShade: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(9, 20, 31, 0.22)",
+    backgroundColor: "rgba(255, 226, 182, 0.08)",
   },
   btnPill: {
     alignItems: "center",
