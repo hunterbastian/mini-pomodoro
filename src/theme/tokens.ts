@@ -3,50 +3,58 @@ import { Platform } from "react-native";
 const monoFont =
   Platform.select({
     android: "monospace",
-    ios: "Menlo",
-    web: 'ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+    ios:     "Menlo",
+    web:     'ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   }) ?? "monospace";
 
+/* ─────────────────────────────────────────────────────────
+ * Stardew-inspired palette
+ *
+ * Daylight sky + farm wood + crop greens.
+ * Bright and cozy, with high-contrast game-like panel edges.
+ * ───────────────────────────────────────────────────────── */
 export const theme = {
   colors: {
-    // Obsidian-inspired dark palette with Minecraft/fantasy earthy tones
-    background: "#0d0d14",
-    surface: "#161620",
-    surfaceMuted: "#1d1d2a",
-    surfaceElevated: "#222234",
-    // Primary accent: enchantment table purple/violet
-    accent: "#7c6af7",
-    accentSecondary: "#5b4fcf",
-    accentGlow: "#a594ff",
-    // Minecraft earthy/nature tones as secondaries
-    accentGreen: "#4a7c59",
-    accentGreenBright: "#5a9c6e",
-    accentStone: "#4a4a5a",
-    // Text
-    textPrimary: "#e0ddf5",
-    textSecondary: "#706e8a",
-    textMuted: "#3e3c52",
-    // Borders: pixel-crisp
-    border: "#2a2840",
-    borderSubtle: "#1a1828",
-    borderHighlight: "#3d3860",
-    // Danger: enchanted red
-    danger: "#d44a6a",
-    // Overlay
-    overlay: "rgba(6, 6, 12, 0.88)",
-    // Glow colors
-    glowA: "#2e2260",
-    glowB: "#1a1040",
-    glowViolet: "#4a3ab0",
-    glowGreen: "#1a3d28",
-    // Grid
-    grid: "#17162a",
+    // Daytime sky + wood panels
+    background:      "#8fc7ff",
+    surface:         "#f5d9aa",
+    surfaceMuted:    "#e8bf7d",
+    surfaceElevated: "#d7a86b",
+
+    // Farm accents
+    accent:          "#5f9238",
+    accentSecondary: "#3f6a24",
+    accentGlow:      "#f4cf63",
+
+    // Supporting naturals
+    accentGreen:      "#79a84f",
+    accentGreenBright:"#95c562",
+    accentStone:      "#8f6b40",
+
+    // Text: dark walnut, readable against warm surfaces
+    textPrimary:      "#2c1e11",
+    textSecondary:    "#5a3b1d",
+    textMuted:        "#8a673f",
+
+    // Borders: carved, game-like outlines
+    border:           "#6a4a2a",
+    borderSubtle:     "#9d6f3e",
+    borderHighlight:  "#f9e6ac",
+
+    // States
+    danger:           "#a23b25",
+    overlay:          "rgba(20, 33, 54, 0.58)",
+
+    // Ambient tones
+    glowA:            "#c5e2ff",
+    glowB:            "#96d478",
+    glowWarm:         "#ffe8a8",
+    glowShadow:       "rgba(66, 42, 18, 0.2)",
   },
   radius: {
-    // Slightly less round = more blocky/pixelated feel
-    lg: 8,
-    md: 4,
-    sm: 2,
+    lg:   12,
+    md:   8,
+    sm:   4,
     pill: 999,
   },
   spacing: {
@@ -54,12 +62,12 @@ export const theme = {
     sm: 10,
     md: 16,
     lg: 24,
-    xl: 32,
+    xl: 36,
   },
   typography: {
-    heading: "Manrope_600SemiBold",
-    body: "Manrope_400Regular",
-    bodyStrong: "Manrope_600SemiBold",
-    mono: monoFont,
+    heading:    monoFont,
+    body:       monoFont,
+    bodyStrong: monoFont,
+    mono:       monoFont,
   },
 } as const;

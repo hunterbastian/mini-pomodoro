@@ -106,7 +106,7 @@ function AnimatedRow({
         </View>
       </View>
       <View style={styles.rowBadge}>
-        <Text style={styles.rowBadgeText}>+25 XP</Text>
+        <Text style={styles.rowBadgeText}>+1 DAY</Text>
       </View>
     </Animated.View>
   );
@@ -184,11 +184,11 @@ export function HistoryScreen() {
           <View style={styles.headerTextWrap}>
             <View style={styles.headerTitleRow}>
               <View>
-                <Text style={styles.title}>▓ SESSION LOG</Text>
-                <Text style={styles.subtitle}>COMPLETED FOCUS BLOCKS</Text>
+                <Text style={styles.title}>▓ FARMER'S LOG</Text>
+                <Text style={styles.subtitle}>DAY CYCLES COMPLETED</Text>
                 {entries.length > 0 && (
                   <Text style={styles.sessionCount}>
-                    {entries.length} QUEST{entries.length === 1 ? "" : "S"} COMPLETE
+                    {entries.length} HARVEST{entries.length === 1 ? "" : "S"} COMPLETE
                   </Text>
                 )}
               </View>
@@ -207,8 +207,8 @@ export function HistoryScreen() {
         ListEmptyComponent={
           <View style={[styles.emptyWrap, { width: contentWidth }]}>
             <PixelFlower sessionCount={0} size={96} />
-            <Text style={styles.emptyTitle}>// NO SESSIONS YET</Text>
-            <Text style={styles.emptySubtitle}>Complete a 25-min focus block to begin your log.</Text>
+            <Text style={styles.emptyTitle}>// NO HARVESTS YET</Text>
+            <Text style={styles.emptySubtitle}>Complete one farm day to begin your journal.</Text>
           </View>
         }
         renderItem={({ item, index }) => (
@@ -229,22 +229,22 @@ export function HistoryScreen() {
 const styles = StyleSheet.create({
   backgroundGlow: {
     borderRadius: 160,
-    opacity: 0.5,
+    opacity: 0.6,
     position: "absolute",
   },
   backgroundGlowBottom: {
     backgroundColor: theme.colors.glowB,
-    height: 320,
-    right: -120,
-    top: "55%",
-    width: 320,
+    height: 380,
+    right: -150,
+    top: "56%",
+    width: 380,
   },
   backgroundGlowTop: {
     backgroundColor: theme.colors.glowA,
-    height: 360,
-    left: -140,
-    top: -100,
-    width: 360,
+    height: 420,
+    left: -180,
+    top: -140,
+    width: 420,
   },
   backgroundLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -253,16 +253,16 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     color: theme.colors.textMuted,
     fontFamily: theme.typography.mono,
-    fontSize: 12,
-    letterSpacing: 0.8,
+    fontSize: 11,
+    letterSpacing: 0.7,
     marginTop: theme.spacing.xs,
     textAlign: "center",
   },
   emptyTitle: {
     color: theme.colors.textSecondary,
     fontFamily: theme.typography.mono,
-    fontSize: 15,
-    letterSpacing: 1.5,
+    fontSize: 13,
+    letterSpacing: 1.2,
     textAlign: "center",
   },
   emptyWrap: {
@@ -287,12 +287,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
-    borderWidth: 1,
+    borderWidth: 2,
     overflow: "hidden",
-    shadowColor: theme.colors.glowA,
+    shadowColor: theme.colors.glowShadow,
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
+    shadowOpacity: 0.65,
+    shadowRadius: 18,
   },
   headerDitherWrap: {
     width: "100%",
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
-    borderWidth: 1,
+    borderWidth: 2,
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: theme.spacing.sm,
@@ -328,10 +328,10 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   rowBadge: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.borderHighlight,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.sm,
-    borderWidth: 1,
+    borderWidth: 2,
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
@@ -339,13 +339,13 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontFamily: theme.typography.mono,
     fontSize: 10,
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
   },
   rowDate: {
     color: theme.colors.textPrimary,
     fontFamily: theme.typography.mono,
-    fontSize: 12,
-    letterSpacing: 0.8,
+    fontSize: 11,
+    letterSpacing: 0.5,
   },
   rowGem: {
     backgroundColor: theme.colors.accent,
@@ -359,7 +359,9 @@ const styles = StyleSheet.create({
   rowIndex: {
     alignItems: "center",
     backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.borderSubtle,
     borderRadius: theme.radius.sm,
+    borderWidth: 1,
     height: 34,
     justifyContent: "center",
     marginRight: theme.spacing.md,
@@ -368,8 +370,8 @@ const styles = StyleSheet.create({
   rowIndexText: {
     color: theme.colors.textMuted,
     fontFamily: theme.typography.mono,
-    fontSize: 11,
-    letterSpacing: 0.5,
+    fontSize: 10,
+    letterSpacing: 0.3,
   },
   rowLeft: {
     alignItems: "center",
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
   rowMeta: {
     color: theme.colors.textMuted,
     fontFamily: theme.typography.mono,
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 0.4,
     marginTop: 3,
   },
@@ -391,20 +393,20 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontFamily: theme.typography.mono,
     fontSize: 10,
-    letterSpacing: 2.5,
+    letterSpacing: 1.2,
     marginTop: 5,
   },
   subtitle: {
     color: theme.colors.textMuted,
     fontFamily: theme.typography.mono,
-    fontSize: 10,
-    letterSpacing: 2,
+    fontSize: 9,
+    letterSpacing: 1.2,
     marginTop: 4,
   },
   title: {
     color: theme.colors.textSecondary,
     fontFamily: theme.typography.mono,
-    fontSize: 14,
-    letterSpacing: 2.5,
+    fontSize: 13,
+    letterSpacing: 1.4,
   },
 });

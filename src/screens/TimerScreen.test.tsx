@@ -82,21 +82,21 @@ describe("TimerScreen", () => {
       expect(timerStore.hydrate).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.press(screen.getByText("Start"));
+    fireEvent.press(screen.getByText("Start day"));
 
     await waitFor(() => {
       expect(timerStore.start).toHaveBeenCalledTimes(1);
-      expect(screen.getByText("Pause")).toBeTruthy();
+      expect(screen.getByText("Pause day")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Pause"));
+    fireEvent.press(screen.getByText("Pause day"));
 
     await waitFor(() => {
       expect(timerStore.pause).toHaveBeenCalledTimes(1);
-      expect(screen.getByText("Start")).toBeTruthy();
+      expect(screen.getByText("Back to farm")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Reset"));
+    fireEvent.press(screen.getByText("Reset day"));
 
     await waitFor(() => {
       expect(timerStore.reset).toHaveBeenCalledTimes(1);

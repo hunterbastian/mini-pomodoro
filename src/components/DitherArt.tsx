@@ -33,59 +33,59 @@ function bayer(col: number, row: number): number {
 
 /* ─── Palette ─────────────────────────────────────────────── */
 // Sky
-const SKY_TOP     = "#4a2a18";   // deep warm predawn
-const SKY_MID     = "#c05828";   // rich orange sunrise
-const SKY_HORIZON = "#e8a050";   // warm amber horizon
+const SKY_TOP     = "#78b6ff";   // bright midday sky
+const SKY_MID     = "#9fd2ff";   // soft valley blue
+const SKY_HORIZON = "#d8f0ff";   // pale morning haze
 // Clouds
-const CLOUD_LT    = "#f0d8c0";
-const CLOUD_DK    = "#c89060";
+const CLOUD_LT    = "#ffffff";
+const CLOUD_DK    = "#d7ecff";
 // Ground
-const HILL_GRASS  = "#5a8c38";
-const HILL_SHADOW = "#3a6220";
-const HILL_DARK   = "#2a4818";
-const DIRT_PATH   = "#8c6840";
-const DIRT_SHADOW = "#6a4c28";
+const HILL_GRASS  = "#6eae45";
+const HILL_SHADOW = "#518536";
+const HILL_DARK   = "#3f6d2a";
+const DIRT_PATH   = "#b88953";
+const DIRT_SHADOW = "#8d6437";
 // Farmhouse
-const ROOF_MAIN   = "#9c3020";   // red SDV roof
-const ROOF_SHADOW = "#6a1c10";
-const WALL_MAIN   = "#d8b870";   // warm cream wall
-const WALL_SHADOW = "#a88840";
-const WINDOW_GLOW = "#f8d040";   // warm candlelight
-const WINDOW_DK   = "#c09820";
-const CHIMNEY     = "#4a3828";
-const SMOKE       = "#8a7060";
+const ROOF_MAIN   = "#c54c2b";   // red SDV roof
+const ROOF_SHADOW = "#88321a";
+const WALL_MAIN   = "#f2d29f";   // warm cream wall
+const WALL_SHADOW = "#c59a5d";
+const WINDOW_GLOW = "#ffd86c";   // warm candlelight
+const WINDOW_DK   = "#d39f34";
+const CHIMNEY     = "#6d533c";
+const SMOKE       = "#b6c8db";
 // Crops
-const SOIL        = "#6a4028";
-const SOIL_DK     = "#4a2c18";
-const CROP_GREEN  = "#68b030";
-const CROP_SHADOW = "#3a7018";
-const WHEAT_GOLD  = "#d4a030";
-const WHEAT_LT    = "#f0c850";
-const PUMPKIN     = "#d06018";
-const PUMPKIN_LT  = "#f08830";
-const TURNIP_LT   = "#e8d0f0";
-const TURNIP_DK   = "#b090c0";
+const SOIL        = "#8b5a2e";
+const SOIL_DK     = "#6d4321";
+const CROP_GREEN  = "#6cbf3b";
+const CROP_SHADOW = "#3f7f22";
+const WHEAT_GOLD  = "#e3ba45";
+const WHEAT_LT    = "#f5d87a";
+const PUMPKIN     = "#d67b28";
+const PUMPKIN_LT  = "#f3a045";
+const TURNIP_LT   = "#edd7ff";
+const TURNIP_DK   = "#bea1d8";
 // Fence
-const FENCE_WOOD  = "#c89048";
-const FENCE_SHADOW= "#8a5c28";
+const FENCE_WOOD  = "#d8a45a";
+const FENCE_SHADOW= "#9a6a33";
 // Tree
-const TREE_TRUNK  = "#7a4820";
-const TREE_BARK   = "#5a3010";
-const LEAF_A      = "#4a8820";
-const LEAF_B      = "#386418";
-const LEAF_C      = "#5aaa28";
+const TREE_TRUNK  = "#7e5329";
+const TREE_BARK   = "#5d3a1b";
+const LEAF_A      = "#5da33a";
+const LEAF_B      = "#447b2b";
+const LEAF_C      = "#75bf46";
 // Sunflower
-const SUNPETAL    = "#f0c020";
-const SUNPETAL_DK = "#c09010";
-const SUNCENTER   = "#5a2808";
+const SUNPETAL    = "#f6cf3e";
+const SUNPETAL_DK = "#d9a925";
+const SUNCENTER   = "#6a3510";
 // Chicken
-const CHKN_WHITE  = "#f0ece0";
-const CHKN_RED    = "#d03020";
-const CHKN_BEAK   = "#f0a020";
+const CHKN_WHITE  = "#fcf7ee";
+const CHKN_RED    = "#d64a3a";
+const CHKN_BEAK   = "#f2aa35";
 // Wildflower
-const FLOWER_A    = "#e060a0";   // pink
-const FLOWER_B    = "#8060d0";   // purple
-const FLOWER_STEM = "#4a7820";
+const FLOWER_A    = "#f07ba8";   // pink
+const FLOWER_B    = "#8b78dc";   // lavender
+const FLOWER_STEM = "#4e8d2b";
 
 type Color = string | null;
 type Grid  = Color[][];
