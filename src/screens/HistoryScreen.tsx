@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DitherArt } from "../components/DitherArt";
+import { PixelFlower } from "../components/PixelFlower";
 import { historyRepo } from "../storage/historyRepo";
 import { theme } from "../theme/tokens";
 import type { SessionEntry } from "../types/session";
@@ -181,13 +182,18 @@ export function HistoryScreen() {
             <DitherArt width={ditherWidth} />
           </View>
           <View style={styles.headerTextWrap}>
-            <Text style={styles.title}>▓ SESSION LOG</Text>
-            <Text style={styles.subtitle}>COMPLETED FOCUS BLOCKS</Text>
-            {entries.length > 0 && (
-              <Text style={styles.sessionCount}>
-                {entries.length} QUEST{entries.length === 1 ? "" : "S"} COMPLETE
-              </Text>
-            )}
+            <View style={styles.headerTitleRow}>
+              <View>
+                <Text style={styles.title}>▓ SESSION LOG</Text>
+                <Text style={styles.subtitle}>COMPLETED FOCUS BLOCKS</Text>
+                {entries.length > 0 && (
+                  <Text style={styles.sessionCount}>
+                    {entries.length} QUEST{entries.length === 1 ? "" : "S"} COMPLETE
+                  </Text>
+                )}
+              </View>
+              <PixelFlower sessionCount={entries.length} size={60} />
+            </View>
           </View>
         </View>
       </Animated.View>
@@ -200,6 +206,7 @@ export function HistoryScreen() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <View style={[styles.emptyWrap, { width: contentWidth }]}>
+            <PixelFlower sessionCount={0} size={96} />
             <Text style={styles.emptyTitle}>// NO SESSIONS YET</Text>
             <Text style={styles.emptySubtitle}>Complete a 25-min focus block to begin your log.</Text>
           </View>
@@ -293,6 +300,11 @@ const styles = StyleSheet.create({
   headerTextWrap: {
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+  },
+  headerTitleRow: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   listContent: {
     alignItems: "center",

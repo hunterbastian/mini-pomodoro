@@ -41,18 +41,18 @@ export function TabsNavigator() {
           headerShown: false,
           sceneStyle: {
             backgroundColor: theme.colors.background,
-            paddingBottom: 84,
+            paddingBottom: isDesktop ? 0 : 84,
           },
           tabBarActiveTintColor: theme.colors.accent,
           tabBarInactiveTintColor: theme.colors.textSecondary,
-          tabBarStyle: {
+          tabBarStyle: isDesktop ? { display: "none" } : {
             backgroundColor: theme.colors.surface,
             borderColor: theme.colors.border,
             borderWidth: 1,
             borderTopColor: theme.colors.border,
             borderTopWidth: 1,
             height: 60,
-            marginBottom: isDesktop ? 20 : 12,
+            marginBottom: 12,
             alignSelf: "center",
             borderRadius: theme.radius.md,
             width: tabBarWidth,

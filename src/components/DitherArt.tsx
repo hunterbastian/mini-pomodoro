@@ -1,184 +1,365 @@
-import { View } from "react-native";
-import Svg, { Circle, Rect } from "react-native-svg";
+/* ─────────────────────────────────────────────────────────
+ * DitherArt — Stardew Valley farm banner
+ *
+ * Scene (left → right):
+ *   Sky with warm sunrise gradient + dithered clouds
+ *   Rolling green hills, dirt path, wooden fence
+ *   Left: farmhouse with red roof, chimney, warm window glow
+ *   Center: tilled soil rows, crops (wheat/turnips/pumpkin)
+ *   Right: oak tree, small chicken, sunflower
+ *   Foreground: grass tuft, wildflowers
+ *
+ * Canvas: 80 × 26 pixels, PIXEL = 4 px → 320 × 104 rendered
+ * Palette: warm SDV-style earthy tones
+ * ───────────────────────────────────────────────────────── */
 
-/**
- * Dither art: an 8-bit fantasy castle landscape.
- * Uses ordered (Bayer 4×4) dithering for shading gradients.
- * Scene: starry sky, moon, distant mountains, castle silhouette on a hill.
- */
+import { View } from "react-native";
+import Svg, { Rect } from "react-native-svg";
 
 const PIXEL = 4;
-const W = 64;
-const H = 22;
+const W     = 80;
+const H     = 26;
 
-// Bayer 4×4 ordered dither threshold matrix
+/* ─── Bayer 4×4 ──────────────────────────────────────────── */
 const BAYER4 = [
-  [0,  8,  2, 10],
-  [12, 4, 14,  6],
-  [3, 11,  1,  9],
-  [15, 7, 13,  5],
+  [ 0,  8,  2, 10],
+  [12,  4, 14,  6],
+  [ 3, 11,  1,  9],
+  [15,  7, 13,  5],
 ];
 function bayer(col: number, row: number): number {
-  return BAYER4[row % 4][col % 4] / 16;
+  return BAYER4[row & 3]![col & 3]! / 16;
 }
 
-// Terrain layers (rows from top = 0)
-// Sky ends, ground starts at row 16
-const GROUND_ROW = 16;
+/* ─── Palette ─────────────────────────────────────────────── */
+// Sky
+const SKY_TOP     = "#4a2a18";   // deep warm predawn
+const SKY_MID     = "#c05828";   // rich orange sunrise
+const SKY_HORIZON = "#e8a050";   // warm amber horizon
+// Clouds
+const CLOUD_LT    = "#f0d8c0";
+const CLOUD_DK    = "#c89060";
+// Ground
+const HILL_GRASS  = "#5a8c38";
+const HILL_SHADOW = "#3a6220";
+const HILL_DARK   = "#2a4818";
+const DIRT_PATH   = "#8c6840";
+const DIRT_SHADOW = "#6a4c28";
+// Farmhouse
+const ROOF_MAIN   = "#9c3020";   // red SDV roof
+const ROOF_SHADOW = "#6a1c10";
+const WALL_MAIN   = "#d8b870";   // warm cream wall
+const WALL_SHADOW = "#a88840";
+const WINDOW_GLOW = "#f8d040";   // warm candlelight
+const WINDOW_DK   = "#c09820";
+const CHIMNEY     = "#4a3828";
+const SMOKE       = "#8a7060";
+// Crops
+const SOIL        = "#6a4028";
+const SOIL_DK     = "#4a2c18";
+const CROP_GREEN  = "#68b030";
+const CROP_SHADOW = "#3a7018";
+const WHEAT_GOLD  = "#d4a030";
+const WHEAT_LT    = "#f0c850";
+const PUMPKIN     = "#d06018";
+const PUMPKIN_LT  = "#f08830";
+const TURNIP_LT   = "#e8d0f0";
+const TURNIP_DK   = "#b090c0";
+// Fence
+const FENCE_WOOD  = "#c89048";
+const FENCE_SHADOW= "#8a5c28";
+// Tree
+const TREE_TRUNK  = "#7a4820";
+const TREE_BARK   = "#5a3010";
+const LEAF_A      = "#4a8820";
+const LEAF_B      = "#386418";
+const LEAF_C      = "#5aaa28";
+// Sunflower
+const SUNPETAL    = "#f0c020";
+const SUNPETAL_DK = "#c09010";
+const SUNCENTER   = "#5a2808";
+// Chicken
+const CHKN_WHITE  = "#f0ece0";
+const CHKN_RED    = "#d03020";
+const CHKN_BEAK   = "#f0a020";
+// Wildflower
+const FLOWER_A    = "#e060a0";   // pink
+const FLOWER_B    = "#8060d0";   // purple
+const FLOWER_STEM = "#4a7820";
 
-// Mountain profile: low distant mountains
-function mountainHeight(x: number): number {
-  const m1 = Math.max(0, 7 - Math.abs(x - 10) * 0.9);
-  const m2 = Math.max(0, 6 - Math.abs(x - 26) * 0.8);
-  const m3 = Math.max(0, 5 - Math.abs(x - 55) * 0.7);
-  return Math.round(Math.max(m1, m2, m3));
+type Color = string | null;
+type Grid  = Color[][];
+
+function make(): Grid {
+  return Array.from({ length: H }, () => Array<Color>(W).fill(null));
+}
+function p(g: Grid, x: number, y: number, c: Color) {
+  if (x >= 0 && x < W && y >= 0 && y < H) g[y]![x] = c;
+}
+function hline(g: Grid, x0: number, x1: number, y: number, c: Color) {
+  for (let x = x0; x <= x1; x++) p(g, x, y, c);
+}
+function vline(g: Grid, x: number, y0: number, y1: number, c: Color) {
+  for (let y = y0; y <= y1; y++) p(g, x, y, c);
+}
+function fill(g: Grid, x0: number, y0: number, x1: number, y1: number, c: Color) {
+  for (let y = y0; y <= y1; y++) hline(g, x0, x1, y, c);
+}
+function dith(g: Grid, x0: number, y0: number, x1: number, y1: number, ca: Color, cb: Color, thresh = 0.5) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++)
+    p(g, x, y, bayer(x, y) < thresh ? ca : cb);
 }
 
-// Castle structure: defined as a set of filled pixel blocks [col, row] relative to top-left
-// Castle sits on a hill at around col 34–44, hill top at row 14
-const HILL_CENTER = 38;
-const HILL_ROW = 15; // row where hill peak is
+function buildScene(): Grid {
+  const g = make();
 
-function hillHeight(x: number): number {
-  const d = Math.abs(x - HILL_CENTER);
-  return Math.max(0, Math.round(5 - d * 0.55));
+  /* ── Sky gradient ──────────────────────────────────────── */
+  for (let y = 0; y < 14; y++) {
+    const frac = y / 13;
+    for (let x = 0; x < W; x++) {
+      const t = bayer(x, y);
+      if (frac < 0.3) {
+        p(g, x, y, t < frac / 0.3 + 0.1 ? SKY_MID : SKY_TOP);
+      } else if (frac < 0.7) {
+        const sub = (frac - 0.3) / 0.4;
+        p(g, x, y, t < sub ? SKY_HORIZON : SKY_MID);
+      } else {
+        p(g, x, y, t < 0.55 ? SKY_HORIZON : SKY_MID);
+      }
+    }
+  }
+
+  /* ── Clouds (fluffy blobs) ─────────────────────────────── */
+  // Cloud 1: top-right area
+  const cloud1: [number, number][] = [
+    [55,2],[56,2],[57,2],[58,2],
+    [54,3],[55,3],[56,3],[57,3],[58,3],[59,3],[60,3],
+    [55,4],[56,4],[57,4],[58,4],[59,4],
+  ];
+  for (const [cx, cy] of cloud1)
+    p(g, cx, cy, bayer(cx, cy) < 0.6 ? CLOUD_LT : CLOUD_DK);
+
+  // Cloud 2: left
+  const cloud2: [number, number][] = [
+    [8,1],[9,1],[10,1],
+    [7,2],[8,2],[9,2],[10,2],[11,2],[12,2],
+    [8,3],[9,3],[10,3],[11,3],
+  ];
+  for (const [cx, cy] of cloud2)
+    p(g, cx, cy, bayer(cx, cy) < 0.55 ? CLOUD_LT : CLOUD_DK);
+
+  /* ── Rolling hills (background) ───────────────────────── */
+  // Far hill - row 11–13
+  for (let x = 0; x < W; x++) {
+    const h = Math.round(2 * Math.sin(x * 0.09 + 0.5) + 0.8 * Math.sin(x * 0.17));
+    for (let y = 12 - Math.max(0, h); y <= 13; y++) {
+      p(g, x, y, bayer(x, y) < 0.45 ? HILL_SHADOW : HILL_DARK);
+    }
+  }
+
+  /* ── Ground base rows 14–25 ────────────────────────────── */
+  dith(g, 0, 14, W - 1, 15, HILL_GRASS, HILL_SHADOW, 0.55);
+  dith(g, 0, 16, W - 1, 17, HILL_SHADOW, HILL_DARK, 0.5);
+  fill(g, 0, 18, W - 1, 25, HILL_DARK);
+
+  /* ── Tilled soil rows (crops area x=28–55, rows 18–24) ── */
+  for (let y = 18; y <= 24; y++) {
+    for (let x = 28; x <= 55; x++) {
+      p(g, x, y, bayer(x, y) < 0.45 ? SOIL : SOIL_DK);
+    }
+  }
+  // Soil tilling lines
+  for (let x = 28; x <= 55; x += 4) {
+    vline(g, x, 18, 24, SOIL_DK);
+  }
+
+  /* ── Dirt path (center bottom, cols 36–44, rows 23–25) ── */
+  dith(g, 36, 23, 44, 25, DIRT_PATH, DIRT_SHADOW, 0.55);
+
+  /* ── FARMHOUSE (cols 2–18, rows 10–24) ─────────────────── */
+  // Chimney (col 6, rows 8–11)
+  fill(g, 6, 8, 7, 11, CHIMNEY);
+  p(g, 6, 7, bayer(6,7)<0.5 ? SMOKE : null);
+  p(g, 7, 6, bayer(7,6)<0.4 ? SMOKE : null);
+  p(g, 8, 5, bayer(8,5)<0.3 ? SMOKE : null);
+
+  // Roof (triangle, rows 10–13)
+  for (let y = 10; y <= 13; y++) {
+    const half = (13 - y) * 2 + 1;
+    const cx = 10;
+    const x0 = cx - half;
+    const x1 = cx + half;
+    for (let x = x0; x <= x1; x++) {
+      const edge = (x === x0 || x === x1);
+      if (y === 10) {
+        p(g, x, y, ROOF_SHADOW);
+      } else {
+        p(g, x, y, edge ? ROOF_SHADOW : (bayer(x,y)<0.6 ? ROOF_MAIN : ROOF_SHADOW));
+      }
+    }
+  }
+  // Roof ridge trim
+  hline(g, 9, 11, 10, WALL_MAIN);
+
+  // Walls (cols 3–17, rows 14–24)
+  for (let y = 14; y <= 24; y++) {
+    for (let x = 3; x <= 17; x++) {
+      const shadow = x <= 4 || x >= 16;
+      p(g, x, y, shadow ? WALL_SHADOW : (bayer(x,y)<0.5 ? WALL_MAIN : WALL_SHADOW));
+    }
+  }
+
+  // Windows (left: col 4–6 row 15–17, right: col 13–15 row 15–17)
+  for (let wy = 15; wy <= 17; wy++) {
+    for (let wx = 4; wx <= 6; wx++) {
+      p(g, wx, wy, bayer(wx,wy)<0.65 ? WINDOW_GLOW : WINDOW_DK);
+    }
+    for (let wx = 13; wx <= 15; wx++) {
+      p(g, wx, wy, bayer(wx,wy)<0.65 ? WINDOW_GLOW : WINDOW_DK);
+    }
+  }
+  // Window frame
+  hline(g, 4, 6, 14, WALL_SHADOW); hline(g, 4, 6, 18, WALL_SHADOW);
+  vline(g, 3, 15, 17, WALL_SHADOW); vline(g, 7, 15, 17, WALL_SHADOW);
+  hline(g, 13, 15, 14, WALL_SHADOW); hline(g, 13, 15, 18, WALL_SHADOW);
+  vline(g, 12, 15, 17, WALL_SHADOW); vline(g, 16, 15, 17, WALL_SHADOW);
+
+  // Door (col 9–11, rows 20–24)
+  fill(g, 9, 20, 11, 24, WALL_SHADOW);
+  p(g, 9, 20, ROOF_SHADOW); p(g, 11, 20, ROOF_SHADOW);
+  // Door knob
+  p(g, 11, 22, WHEAT_GOLD);
+
+  /* ── Wooden fence (cols 19–27, rows 18–21) ─────────────── */
+  // Posts
+  for (let x = 19; x <= 27; x += 4) {
+    vline(g, x, 17, 22, FENCE_WOOD);
+    p(g, x, 17, FENCE_SHADOW);
+  }
+  // Rails
+  hline(g, 19, 27, 18, FENCE_WOOD);
+  hline(g, 19, 27, 20, FENCE_WOOD);
+  hline(g, 19, 27, 22, FENCE_SHADOW);
+
+  /* ── Crops ─────────────────────────────────────────────── */
+  // Wheat stalks (cols 28–34, rows 15–21)
+  for (let x = 29; x <= 34; x += 3) {
+    vline(g, x, 17, 21, CROP_GREEN);
+    // Wheat head
+    p(g, x,   16, WHEAT_GOLD);
+    p(g, x-1, 16, bayer(x-1,16)<0.5 ? WHEAT_GOLD : WHEAT_LT);
+    p(g, x+1, 16, bayer(x+1,16)<0.5 ? WHEAT_GOLD : null);
+    p(g, x,   15, bayer(x,15)<0.6 ? WHEAT_LT : WHEAT_GOLD);
+  }
+
+  // Turnips (cols 38–43, rows 19–21) — purple bulbs
+  for (let x = 38; x <= 43; x += 3) {
+    p(g, x,   19, CROP_GREEN); p(g, x, 20, CROP_GREEN);
+    dith(g, x-1, 21, x+1, 22, TURNIP_LT, TURNIP_DK, 0.55);
+    p(g, x, 20, CROP_SHADOW);
+  }
+
+  // Pumpkin (cols 47–51, rows 21–23)
+  dith(g, 47, 21, 51, 23, PUMPKIN_LT, PUMPKIN, 0.5);
+  p(g, 49, 20, CROP_GREEN); // stem
+  // Pumpkin ribs
+  vline(g, 49, 21, 23, PUMPKIN);
+  p(g, 47, 21, PUMPKIN); p(g, 51, 21, PUMPKIN);
+  p(g, 47, 23, PUMPKIN); p(g, 51, 23, PUMPKIN);
+
+  /* ── OAK TREE (cols 58–68, rows 8–24) ─────────────────── */
+  // Trunk (col 62–63, rows 19–24)
+  for (let y = 19; y <= 24; y++) {
+    p(g, 62, y, bayer(62,y)<0.6 ? TREE_TRUNK : TREE_BARK);
+    p(g, 63, y, TREE_BARK);
+  }
+  // Canopy (irregular blob)
+  const canopyPixels: [number, number][] = [
+    [60,8],[61,8],[62,8],[63,8],[64,8],
+    [58,9],[59,9],[60,9],[61,9],[62,9],[63,9],[64,9],[65,9],[66,9],
+    [57,10],[58,10],[59,10],[60,10],[61,10],[62,10],[63,10],[64,10],[65,10],[66,10],[67,10],
+    [57,11],[58,11],[59,11],[60,11],[61,11],[62,11],[63,11],[64,11],[65,11],[66,11],[67,11],
+    [58,12],[59,12],[60,12],[61,12],[62,12],[63,12],[64,12],[65,12],[66,12],[67,12],
+    [59,13],[60,13],[61,13],[62,13],[63,13],[64,13],[65,13],[66,13],
+    [60,14],[61,14],[62,14],[63,14],[64,14],[65,14],
+    [61,15],[62,15],[63,15],[64,15],
+    [62,16],[63,16],
+  ];
+  for (const [cx, cy] of canopyPixels) {
+    const edge = (cy === 8 || cy === 16 || cx === 57 || cx === 67);
+    p(g, cx, cy, edge ? LEAF_B : (bayer(cx,cy) < 0.45 ? LEAF_A : bayer(cx,cy) < 0.7 ? LEAF_C : LEAF_B));
+  }
+  // Leaf shadow on right side
+  for (const [cx, cy] of canopyPixels) {
+    if (cx >= 65) p(g, cx, cy, bayer(cx,cy)<0.4 ? LEAF_B : LEAF_A);
+  }
+
+  /* ── SUNFLOWER (col 70–72, rows 15–24) ─────────────────── */
+  // Stem
+  vline(g, 71, 19, 24, FLOWER_STEM);
+  p(g, 70, 21, LEAF_A);  p(g, 72, 22, LEAF_A); // leaves
+  // Petals
+  const sunPetals: [number, number][] = [
+    [71,15],[70,16],[72,16],[69,17],[73,17],[70,18],[72,18],[71,19],
+  ];
+  for (const [sx, sy] of sunPetals) {
+    p(g, sx, sy, bayer(sx,sy)<0.55 ? SUNPETAL : SUNPETAL_DK);
+  }
+  // Center
+  dith(g, 70, 16, 72, 18, SUNCENTER, "#3a1804", 0.5);
+  p(g, 71, 17, SUNCENTER);
+
+  /* ── CHICKEN (col 74–77, rows 20–24) ───────────────────── */
+  // Body
+  dith(g, 74, 21, 77, 24, CHKN_WHITE, "#d8d0c0", 0.55);
+  // Head (col 76–77, rows 19–21)
+  dith(g, 76, 19, 77, 21, CHKN_WHITE, "#d8d0c0", 0.6);
+  // Comb
+  p(g, 76, 18, CHKN_RED); p(g, 77, 18, CHKN_RED);
+  // Beak
+  p(g, 78, 20, CHKN_BEAK);
+  // Eye
+  p(g, 77, 19, "#1a1010");
+  // Wing crease
+  hline(g, 74, 76, 22, "#b8b0a0");
+  // Feet
+  p(g, 74, 25, CHKN_BEAK); p(g, 76, 25, CHKN_BEAK);
+
+  /* ── Wildflowers foreground (scattered) ─────────────────── */
+  const flowers: [number, number, Color][] = [
+    [2, 24, FLOWER_A], [21, 24, FLOWER_B], [56, 24, FLOWER_A],
+    [69, 24, FLOWER_B], [79, 24, FLOWER_A],
+  ];
+  for (const [fx, fy, fc] of flowers) {
+    p(g, fx, fy,     fc);
+    p(g, fx, fy + 1, FLOWER_STEM);
+  }
+
+  /* ── Grass tufts on foreground row ──────────────────────── */
+  for (let x = 0; x < W; x += 5) {
+    if (bayer(x, 24) < 0.5) {
+      p(g, x,   23, HILL_GRASS);
+      p(g, x+1, 22, HILL_GRASS);
+    }
+  }
+
+  return g;
 }
-
-// Castle blueprint (col offset from castle left=33, row offset from castle top=9)
-// Legend: 1=wall, 2=tower, 3=window(dark), 4=gate
-const CASTLE_LEFT = 33;
-const CASTLE_TOP = 9;
-const CASTLE_GRID: number[][] = [
-  [0,0,0, 2,1,2, 0,0,0, 2,1,2, 0,0,0],
-  [0,0,0, 2,1,2, 0,0,0, 2,1,2, 0,0,0],
-  [0,0,0, 1,1,1, 1,1,1, 1,1,1, 0,0,0],
-  [0,0,0, 1,3,1, 1,1,1, 1,3,1, 0,0,0],
-  [0,0,0, 1,1,1, 1,1,1, 1,1,1, 0,0,0],
-  [0,0,0, 1,1,1, 1,4,1, 1,1,1, 0,0,0],
-];
-
-function getCastleBlock(col: number, row: number): number {
-  const cr = row - CASTLE_TOP;
-  const cc = col - CASTLE_LEFT;
-  if (cr < 0 || cr >= CASTLE_GRID.length) return 0;
-  if (cc < 0 || cc >= CASTLE_GRID[0].length) return 0;
-  return CASTLE_GRID[cr][cc];
-}
-
-// Fixed stars [col, row]
-const STARS: Array<[number, number, number]> = [ // col, row, brightness 0–1
-  [3,  1, 0.9], [10, 2, 0.7], [18, 1, 1.0], [28, 0, 0.8], [40, 2, 0.6],
-  [52, 1, 0.9], [59, 3, 0.7], [6,  4, 0.5], [22, 4, 0.8], [47, 3, 1.0],
-  [56, 5, 0.6], [2,  7, 0.4], [14, 6, 0.7], [30, 5, 0.9], [44, 6, 0.5],
-  [62, 4, 0.8], [8,  9, 0.3], [50, 7, 0.6],
-];
-
-// Moon position
-const MOON_COL = 52;
-const MOON_ROW = 6;
-const MOON_R = 3.2;
 
 type Props = { width?: number };
 
-export function DitherArt({ width = 256 }: Props) {
-  const svgW = W * PIXEL;
-  const svgH = H * PIXEL;
-  const scale = width / svgW;
+export function DitherArt({ width = 320 }: Props) {
+  const grid   = buildScene();
+  const svgW   = W * PIXEL;
+  const svgH   = H * PIXEL;
+  const scale  = width / svgW;
   const scaledH = svgH * scale;
 
-  const rects: React.ReactNode[] = [];
-
-  for (let row = 0; row < H; row++) {
-    for (let col = 0; col < W; col++) {
-      const t = bayer(col, row);
-      const mh = mountainHeight(col);
-      const hh = hillHeight(col);
-      const moonDist = Math.sqrt((col - MOON_COL) ** 2 + (row - MOON_ROW) ** 2);
-      const inMoon = moonDist < MOON_R;
-      const hillRow = HILL_ROW - hh;
-      const inHill = row >= hillRow && row >= GROUND_ROW - 2;
-      const castleType = getCastleBlock(col, row);
-      const inMountain = row >= GROUND_ROW - mh && row < GROUND_ROW;
-      const inGround = row >= GROUND_ROW;
-
-      let fill: string | null = null;
-
-      if (castleType > 0) {
-        // Castle brickwork
-        if (castleType === 3) {
-          // Window: dark void with slight glow
-          fill = t < 0.3 ? "#7c6af7" : "#0a0916";
-        } else if (castleType === 4) {
-          // Gate arch
-          fill = t < 0.25 ? "#4a3ab0" : "#08070f";
-        } else if (castleType === 2) {
-          // Merlon/battlement top
-          const brickPat = (col + row) % 4 < 2;
-          fill = brickPat ? "#2e2c46" : "#1e1c34";
-        } else {
-          // Wall: stone texture via Bayer
-          const brickPat = ((col % 6 < 3) !== (row % 4 < 2));
-          if (t < 0.6) {
-            fill = brickPat ? "#2a2840" : "#222030";
-          } else {
-            fill = brickPat ? "#1e1c2e" : "#18162a";
-          }
-        }
-      } else if (row >= HILL_ROW - hh && row < GROUND_ROW && hillHeight(col) > 0) {
-        // Hill: dark green Minecraft grass/dirt
-        if (row === HILL_ROW - hh) {
-          // Grass top row
-          fill = t < 0.55 ? "#3a5c42" : "#2a4232";
-        } else {
-          // Dirt
-          fill = t < 0.4 ? "#2e2820" : "#201e16";
-        }
-      } else if (inGround) {
-        // Ground: stone/grass row
-        if (row === GROUND_ROW) {
-          const grassPat = (col % 3 === 0);
-          fill = grassPat ? "#2e4c36" : (t < 0.5 ? "#242a1e" : "#1c2018");
-        } else {
-          // Deep dirt/stone
-          fill = t < 0.3 ? "#201e28" : "#161420";
-        }
-      } else if (inMountain) {
-        const depth = (row - (GROUND_ROW - mh)) / Math.max(1, mh);
-        const bright = 0.28 - depth * 0.18;
-        fill = bright > t * 0.6 ? "#252238" : "#191726";
-      } else if (inMoon) {
-        const edge = moonDist / MOON_R;
-        const mb = 1 - edge * 0.5;
-        if (mb > t) {
-          fill = edge < 0.5 ? "#d8d4ff" : "#a594ff";
-        }
-      } else {
-        // Sky
-        const star = STARS.find(([sc, sr]) => sc === col && sr === row);
-        if (star) {
-          const [, , bright] = star;
-          fill = bright > t ? "#b8b4e0" : "#6a64a8";
-        } else {
-          // Sky dither: very subtle gradient
-          const skyBright = 0.08 + (row / GROUND_ROW) * 0.14;
-          if (skyBright > t * 0.7) {
-            fill = "#13112a";
-          }
-        }
-      }
-
-      if (fill) {
-        rects.push(
-          <Rect
-            key={`${col}-${row}`}
-            x={col * PIXEL}
-            y={row * PIXEL}
-            width={PIXEL}
-            height={PIXEL}
-            fill={fill}
-          />,
-        );
-      }
+  const rects: { x: number; y: number; fill: string }[] = [];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const fill = grid[y]![x];
+      if (fill) rects.push({ x: x * PIXEL, y: y * PIXEL, fill });
     }
   }
 
@@ -190,31 +371,16 @@ export function DitherArt({ width = 256 }: Props) {
         style={{ transform: [{ scale }], transformOrigin: "top left" } as object}
         viewBox={`0 0 ${svgW} ${svgH}`}
       >
-        {/* Deep space background */}
-        <Rect x={0} y={0} width={svgW} height={svgH} fill="#0a091a" />
+        {/* Sky base fill */}
+        <Rect x={0} y={0} width={svgW} height={svgH} fill={SKY_TOP} />
 
-        {/* Moon glow */}
-        <Circle
-          cx={MOON_COL * PIXEL + PIXEL / 2}
-          cy={MOON_ROW * PIXEL + PIXEL / 2}
-          r={MOON_R * PIXEL * 2.4}
-          fill="#3a2a8a"
-          opacity={0.22}
-        />
+        {rects.map((r, i) => (
+          <Rect key={i} x={r.x} y={r.y} width={PIXEL} height={PIXEL} fill={r.fill} />
+        ))}
 
-        {rects}
-
-        {/* Scanline overlay: subtle horizontal lines every 2 pixels */}
+        {/* Subtle scanlines */}
         {Array.from({ length: H }, (_, i) => (
-          <Rect
-            key={`sl-${i}`}
-            x={0}
-            y={i * PIXEL + PIXEL - 1}
-            width={svgW}
-            height={1}
-            fill="#000000"
-            opacity={0.12}
-          />
+          <Rect key={`sl-${i}`} x={0} y={i * PIXEL + PIXEL - 1} width={svgW} height={1} fill="#000" opacity={0.08} />
         ))}
       </Svg>
     </View>

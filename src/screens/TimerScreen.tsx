@@ -44,6 +44,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CircularTimer } from "../components/CircularTimer";
 import { DitherArt } from "../components/DitherArt";
+import { PixelFlower } from "../components/PixelFlower";
 import { timerStore } from "../state/timerStore";
 import { historyRepo } from "../storage/historyRepo";
 import { SESSION_DURATION_SEC, type SessionEntry } from "../types/session";
@@ -178,14 +179,16 @@ export function TimerScreen() {
   const isTablet  = width >= BREAKPOINT.tablet && width < BREAKPOINT.desktop;
   const isNarrow  = width < BREAKPOINT.narrow;
 
-  const horizontalInset     = isDesktop ? theme.spacing.xl : isTablet ? theme.spacing.lg : theme.spacing.md;
+  const horizontalInset     = isDesktop ? 48 : isTablet ? theme.spacing.lg : theme.spacing.md;
   const stackedContentWidth = Math.max(280, Math.min(width - horizontalInset * 2, isTablet ? MAX_WIDTH.tablet : MAX_WIDTH.desktop));
-  const desktopShellWidth   = Math.max(920, Math.min(width - horizontalInset * 2, MAX_WIDTH.desktopShell));
-  const desktopHeroWidth    = Math.min(620, Math.max(520, desktopShellWidth * 0.56));
-  const desktopHistoryWidth = desktopShellWidth - desktopHeroWidth - theme.spacing.lg;
-  const timerSize = Math.max(208, Math.min(
-    (isDesktop ? desktopHeroWidth : stackedContentWidth) - 72,
-    isDesktop ? 332 : isTablet ? 270 : 250,
+  // Desktop: constrain shell to 1280px max, centered
+  const desktopShellWidth   = Math.min(width - horizontalInset * 2, MAX_WIDTH.desktopShell);
+  // Hero takes 58% of shell; history gets the rest
+  const desktopHeroWidth    = Math.floor(desktopShellWidth * 0.58);
+  const desktopHistoryWidth = desktopShellWidth - desktopHeroWidth - theme.spacing.xl;
+  const timerSize = Math.max(220, Math.min(
+    (isDesktop ? desktopHeroWidth : stackedContentWidth) - 80,
+    isDesktop ? 360 : isTablet ? 280 : 250,
   ));
 
   const useNativeDriver = Platform.OS !== "web";
@@ -532,6 +535,7 @@ export function TimerScreen() {
     <Animated.View
       style={[
         styles.heroSection,
+        isDesktop && styles.heroSectionDesktop,
         { borderColor: runState.status === "running" ? glowBorderColor : theme.colors.border },
       ]}
     >
@@ -638,12 +642,17 @@ export function TimerScreen() {
       {isDesktop ? (
         <View style={[styles.desktopShell, { paddingHorizontal: horizontalInset, paddingTop: theme.spacing.lg }]}>
           <View style={[styles.desktopGrid, { width: desktopShellWidth }]}>
-            <View style={{ width: heroWidth }}>{heroCard}</View>
+            <View style={{ width: heroWidth, alignSelf: "stretch" }}>{heroCard}</View>
 
             <View style={[styles.desktopHistoryPanel, { width: historyWidth }]}>
               <Animated.View style={[styles.historyHeaderDesktop, { opacity: historyOpacity }]}>
-                <Text style={styles.historyTitle}>▓ SESSION LOG</Text>
-                <Text style={styles.historySubtitle}>COMPLETED 25-MIN BLOCKS</Text>
+                <View style={styles.historyTitleRow}>
+                  <View>
+                    <Text style={styles.historyTitle}>▓ SESSION LOG</Text>
+                    <Text style={styles.historySubtitle}>COMPLETED 25-MIN BLOCKS</Text>
+                  </View>
+                  <PixelFlower sessionCount={entries.length} size={52} />
+                </View>
                 {!!historyErrorMessage && <Text style={styles.errorText}>{historyErrorMessage}</Text>}
               </Animated.View>
 
@@ -653,6 +662,7 @@ export function TimerScreen() {
                 keyExtractor={(item) => item.id}
                 ListEmptyComponent={
                   <View style={[styles.emptyWrap, styles.emptyWrapDesktop]}>
+                    <PixelFlower sessionCount={0} size={88} />
                     <Text style={styles.emptyTitle}>// NO SESSIONS YET</Text>
                     <Text style={styles.emptySubtitle}>Complete a focus block to begin.</Text>
                   </View>
@@ -680,14 +690,20 @@ export function TimerScreen() {
             <View style={{ width: stackedContentWidth }}>
               {heroCard}
               <Animated.View style={[styles.historyHeader, { opacity: historyOpacity }]}>
-                <Text style={styles.historyTitle}>▓ SESSION LOG</Text>
-                <Text style={styles.historySubtitle}>COMPLETED 25-MIN BLOCKS</Text>
+                <View style={styles.historyTitleRow}>
+                  <View>
+                    <Text style={styles.historyTitle}>▓ SESSION LOG</Text>
+                    <Text style={styles.historySubtitle}>COMPLETED 25-MIN BLOCKS</Text>
+                  </View>
+                  <PixelFlower sessionCount={entries.length} size={52} />
+                </View>
                 {!!historyErrorMessage && <Text style={styles.errorText}>{historyErrorMessage}</Text>}
               </Animated.View>
             </View>
           }
           ListEmptyComponent={
             <View style={[styles.emptyWrap, { width: stackedContentWidth }]}>
+              <PixelFlower sessionCount={0} size={88} />
               <Text style={styles.emptyTitle}>// NO SESSIONS YET</Text>
               <Text style={styles.emptySubtitle}>Complete a focus block to begin.</Text>
             </View>
@@ -821,9 +837,9 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   desktopGrid: {
-    alignItems: "flex-start",
+    alignItems: "stretch",
     flexDirection: "row",
-    gap: theme.spacing.lg,
+    gap: theme.spacing.xl,
   },
   desktopHistoryListContent: {
     paddingBottom: theme.spacing.sm,
@@ -833,8 +849,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    maxHeight: 620,
-    minHeight: 520,
+    flex: 1,
+    overflow: "hidden",
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
     shadowColor: theme.colors.glowA,
@@ -845,6 +861,7 @@ const styles = StyleSheet.create({
   desktopShell: {
     alignItems: "center",
     flex: 1,
+    justifyContent: "flex-start",
   },
   ditherBanner: {
     marginBottom: 0,
@@ -944,9 +961,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 32,
   },
+  heroSectionDesktop: {
+    flex: 1,
+    marginBottom: 0,
+  },
   historyHeader: {
     marginBottom: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xs,
+  },
+  historyTitleRow: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   historyHeaderDesktop: {
     borderBottomColor: theme.colors.border,
