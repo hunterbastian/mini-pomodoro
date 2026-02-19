@@ -197,6 +197,9 @@ const styles = StyleSheet.create({
     position:       "absolute",
   },
   digitsPlate: {
+    backgroundColor: "rgba(118, 88, 58, 0.62)",
+    borderColor: "transparent",
+    borderWidth: 0,
     borderRadius: theme.radius.sm,
     marginBottom: 4,
   },

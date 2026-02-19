@@ -585,7 +585,6 @@ export function TimerScreen() {
 
   const rightPanel = (
     <View style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}>
-      <PixelSceneryBackground />
       <View style={styles.rightContent}>
         <View style={styles.taskHeader}>
           <View style={styles.locationTag}>
@@ -618,6 +617,9 @@ export function TimerScreen() {
 
   return (
     <SafeAreaView style={styles.root}>
+      <PixelSceneryBackground />
+      <View pointerEvents="none" style={styles.backdropShade} />
+
       {isDesktop ? (
         <View style={styles.desktopWrap}>{shell}</View>
       ) : (
@@ -662,6 +664,10 @@ export function TimerScreen() {
 }
 
 const styles = StyleSheet.create({
+  backdropShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(9, 20, 31, 0.22)",
+  },
   btnPill: {
     alignItems: "center",
     backgroundColor: theme.colors.surface,
@@ -746,19 +752,18 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   leftPanel: {
-    backgroundColor: "#1e1e1e",
-    borderColor: theme.colors.textPrimary,
-    borderRightWidth: 3,
+    backgroundColor: "rgba(98, 71, 44, 0.34)",
+    borderColor: "rgba(46, 34, 47, 0.45)",
+    borderRightWidth: 2,
     flexShrink: 0,
     justifyContent: "flex-start",
-    minHeight: 760,
+    minHeight: 0,
     padding: 32,
     width: 380,
   },
   leftPanelMobile: {
     borderBottomWidth: 3,
     borderRightWidth: 0,
-    minHeight: 0,
     width: "100%",
   },
   locationCode: {
@@ -853,6 +858,7 @@ const styles = StyleSheet.create({
   },
   mobileScroll: {
     padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   modeTitle: {
     color: theme.colors.surface,
@@ -901,16 +907,16 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   rightPanel: {
+    backgroundColor: "rgba(117, 84, 52, 0.2)",
     flex: 1,
-    minHeight: 760,
-    overflow: "hidden",
+    minHeight: 0,
   },
   rightPanelMobile: {
-    minHeight: 620,
+    minHeight: 0,
     width: "100%",
   },
   root: {
-    backgroundColor: "#000",
+    backgroundColor: "#1b263b",
     flex: 1,
   },
   settingsGrid: {
@@ -921,15 +927,20 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.lg,
   },
   shell: {
-    borderColor: theme.colors.textPrimary,
+    backgroundColor: "rgba(146, 108, 70, 0.82)",
+    borderColor: "#4f3825",
     borderRadius: theme.radius.lg,
-    borderWidth: 3,
+    borderWidth: 2,
     overflow: "hidden",
+    shadowColor: "rgba(14, 9, 6, 0.9)",
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.65,
+    shadowRadius: 22,
   },
   shellDesktop: {
     flexDirection: "row",
     height: "100%",
-    maxHeight: 860,
+    maxHeight: 880,
     maxWidth: 1320,
     width: "100%",
   },
@@ -979,12 +990,12 @@ const styles = StyleSheet.create({
   },
   timerRingWrap: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.26)",
-    borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
     borderRadius: theme.radius.lg,
-    borderWidth: 1,
+    borderWidth: 0,
     marginBottom: theme.spacing.lg,
-    padding: theme.spacing.sm,
+    padding: 0,
     width: "100%",
   },
 });
