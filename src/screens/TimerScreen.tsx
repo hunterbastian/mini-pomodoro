@@ -19,6 +19,7 @@ import { CircularTimer } from "../components/CircularTimer";
 import { PixelSceneryBackground } from "../components/PixelSceneryBackground";
 import { QuestList, type QuestItem } from "../components/QuestList";
 import { StarburstActionButton } from "../components/StarburstActionButton";
+import { TreeGrowthCard } from "../components/TreeGrowthCard";
 import { timerStore } from "../state/timerStore";
 import { historyRepo } from "../storage/historyRepo";
 import type { PersistedRunState, SessionEntry } from "../types/session";
@@ -117,7 +118,7 @@ export function TimerScreen() {
 
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
-  const timerSize = isDesktop ? 260 : Math.max(200, Math.min(width - 110, 250));
+  const timerSize = isDesktop ? 300 : Math.max(200, Math.min(width - 120, 268));
 
   useEffect(() => {
     runStateRef.current = runState;
@@ -453,6 +454,8 @@ export function TimerScreen() {
 
   const activeStatus = selectedMode === "focus" ? runState.status : breakState.status;
   const remainingSec = selectedMode === "focus" ? runState.remainingSec : breakState.remainingSec;
+  const isFocusRunning = selectedMode === "focus" && runState.status === "running";
+  const focusProgress = Math.max(0, Math.min(1, 1 - runState.remainingSec / SESSION_DURATION_SEC));
 
   const primaryActionText = primaryActionLabel(selectedMode, activeStatus);
   const timerLabel = formatTimer(remainingSec);
@@ -494,22 +497,7 @@ export function TimerScreen() {
         <Text style={styles.timerDisplayText}>{timerLabel}</Text>
       </View>
 
-      <Text style={styles.modeTitle}>{modeLabel}</Text>
-
-      <View style={styles.timerRingWrap}>
-        <CircularTimer
-          remainingSec={remainingSec}
-          size={timerSize}
-          totalSec={selectedMode === "focus" ? SESSION_DURATION_SEC : getBreakDuration(selectedMode)}
-        />
-      </View>
-
-      <StarburstActionButton
-        isRunning={activeStatus === "running"}
-        label={primaryActionText}
-        onPress={handlePrimaryPress}
-        size={isDesktop ? 220 : 190}
-      />
+      <Text style={styles.leftPanelHint}>Session Modes</Text>
 
       <View style={styles.controlStack}>
         <Pressable
@@ -552,20 +540,20 @@ export function TimerScreen() {
             Long Break
           </Text>
         </Pressable>
-      </View>
 
-      <Pressable
-        accessibilityRole="button"
-        disabled={resetDisabled}
-        onPress={() => void handleResetPress()}
-        style={({ pressed }) => [
-          styles.resetButton,
-          resetDisabled && styles.resetButtonDisabled,
-          pressed && !resetDisabled && styles.resetButtonPressed,
-        ]}
-      >
-        <Text style={styles.resetButtonText}>Reset</Text>
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          disabled={resetDisabled}
+          onPress={() => void handleResetPress()}
+          style={({ pressed }) => [
+            styles.resetButton,
+            resetDisabled && styles.resetButtonDisabled,
+            pressed && !resetDisabled && styles.resetButtonPressed,
+          ]}
+        >
+          <Text style={styles.resetButtonText}>Reset</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.settingsGrid}>
         <Pressable accessibilityRole="button" style={styles.squareButton}>
@@ -580,6 +568,34 @@ export function TimerScreen() {
       </View>
 
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+    </View>
+  );
+
+  const centerPanel = (
+    <View style={[styles.centerPanel, !isDesktop && styles.centerPanelMobile]}>
+      <View style={styles.centerPanelInner}>
+        <Text style={styles.modeTitle}>{modeLabel}</Text>
+
+        <View style={styles.timerRingWrap}>
+          <CircularTimer
+            remainingSec={remainingSec}
+            size={timerSize}
+            totalSec={selectedMode === "focus" ? SESSION_DURATION_SEC : getBreakDuration(selectedMode)}
+          />
+        </View>
+
+        <View style={styles.sunRow}>
+          <Text style={styles.sunIcon}>☀️</Text>
+          <Text style={styles.sunText}>{isFocusRunning ? "sunlight building" : "sunlight idle"}</Text>
+        </View>
+
+        <StarburstActionButton
+          isRunning={activeStatus === "running"}
+          label={primaryActionText}
+          onPress={handlePrimaryPress}
+          size={isDesktop ? 190 : 170}
+        />
+      </View>
     </View>
   );
 
@@ -601,6 +617,12 @@ export function TimerScreen() {
 
         <QuestList activeQuestId={activeQuest.id} onSelectQuest={setActiveQuestId} quests={QUESTS} />
 
+        <TreeGrowthCard
+          completedSessions={entries.length}
+          growthProgress={focusProgress}
+          isActive={isFocusRunning}
+        />
+
         {!!historyErrorMessage && <Text style={styles.historyError}>{historyErrorMessage}</Text>}
 
         <AchievementBadge completedSessions={entries.length} />
@@ -610,8 +632,19 @@ export function TimerScreen() {
 
   const shell = (
     <View style={[styles.shell, isDesktop ? styles.shellDesktop : styles.shellMobile]}>
-      {leftPanel}
-      {rightPanel}
+      {isDesktop ? (
+        <>
+          {leftPanel}
+          {centerPanel}
+          {rightPanel}
+        </>
+      ) : (
+        <>
+          {centerPanel}
+          {leftPanel}
+          {rightPanel}
+        </>
+      )}
     </View>
   );
 
@@ -705,6 +738,30 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     width: "100%",
   },
+  centerPanel: {
+    alignItems: "center",
+    borderLeftColor: "rgba(46, 34, 47, 0.45)",
+    borderLeftWidth: 2,
+    borderRightColor: "rgba(46, 34, 47, 0.45)",
+    borderRightWidth: 2,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 0,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
+  },
+  centerPanelInner: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  centerPanelMobile: {
+    borderBottomWidth: 2,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    paddingVertical: theme.spacing.lg,
+    width: "100%",
+  },
   currentTaskCard: {
     backgroundColor: "rgba(0,0,0,0.42)",
     borderColor: "rgba(255,255,255,0.22)",
@@ -732,7 +789,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    padding: theme.spacing.lg,
+    padding: theme.spacing.xl,
   },
   errorText: {
     color: "#ffd9d1",
@@ -758,11 +815,20 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     justifyContent: "flex-start",
     minHeight: 0,
-    padding: 32,
-    width: 380,
+    padding: 22,
+    width: 250,
+  },
+  leftPanelHint: {
+    color: "rgba(255,255,255,0.82)",
+    fontFamily: theme.typography.heading,
+    fontSize: 12,
+    letterSpacing: 0.8,
+    marginBottom: theme.spacing.md,
+    textAlign: "center",
+    textTransform: "uppercase",
   },
   leftPanelMobile: {
-    borderBottomWidth: 3,
+    borderBottomWidth: 2,
     borderRightWidth: 0,
     width: "100%",
   },
@@ -863,9 +929,9 @@ const styles = StyleSheet.create({
   modeTitle: {
     color: theme.colors.surface,
     fontFamily: theme.typography.heading,
-    fontSize: 14,
+    fontSize: 16,
     letterSpacing: 1,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
     textAlign: "center",
     textTransform: "uppercase",
   },
@@ -880,7 +946,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.textPrimary,
     borderRadius: theme.radius.pill,
     borderWidth: 2,
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.xs,
     minHeight: 48,
     justifyContent: "center",
     shadowColor: theme.colors.textPrimary,
@@ -903,13 +969,14 @@ const styles = StyleSheet.create({
   },
   rightContent: {
     flex: 1,
-    padding: theme.spacing.xl,
+    padding: 22,
     zIndex: 2,
   },
   rightPanel: {
     backgroundColor: "rgba(117, 84, 52, 0.2)",
-    flex: 1,
+    flexShrink: 0,
     minHeight: 0,
+    width: 360,
   },
   rightPanelMobile: {
     minHeight: 0,
@@ -924,7 +991,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     justifyContent: "center",
     marginTop: "auto",
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
   },
   shell: {
     backgroundColor: "rgba(146, 108, 70, 0.82)",
@@ -939,10 +1006,10 @@ const styles = StyleSheet.create({
   },
   shellDesktop: {
     flexDirection: "row",
-    height: "100%",
-    maxHeight: 880,
-    maxWidth: 1320,
-    width: "100%",
+    maxHeight: 760,
+    maxWidth: 1140,
+    minHeight: 620,
+    width: "88%",
   },
   shellMobile: {
     width: "100%",
@@ -994,8 +1061,30 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     borderRadius: theme.radius.lg,
     borderWidth: 0,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     padding: 0,
-    width: "100%",
+    width: "auto",
+  },
+  sunIcon: {
+    fontSize: 18,
+  },
+  sunRow: {
+    alignItems: "center",
+    backgroundColor: "rgba(255, 224, 148, 0.28)",
+    borderColor: "rgba(67, 49, 30, 0.6)",
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: theme.spacing.md,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sunText: {
+    color: theme.colors.surface,
+    fontFamily: theme.typography.heading,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
   },
 });
