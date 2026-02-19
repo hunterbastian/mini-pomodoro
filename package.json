@@ -13,7 +13,10 @@
     "vercel-build": "expo export --platform web",
     "build:ios:simulator": "eas build --platform ios --profile development-simulator",
     "build:ios:internal": "eas build --platform ios --profile development",
-    "test": "jest"
+    "test": "jest",
+    "secrets:scan": "bash scripts/scan-staged-secrets.sh --all",
+    "hooks:install": "bash scripts/setup-hooks.sh",
+    "prepare": "bash scripts/setup-hooks.sh"
   },
   "keywords": [],
   "author": "",
