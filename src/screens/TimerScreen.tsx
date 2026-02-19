@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
-  ImageBackground,
   Modal,
   Platform,
   Pressable,
@@ -17,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AchievementBadge } from "../components/AchievementBadge";
 import { CircularTimer } from "../components/CircularTimer";
+import { PixelSceneryBackground } from "../components/PixelSceneryBackground";
 import { QuestList, type QuestItem } from "../components/QuestList";
 import { StarburstActionButton } from "../components/StarburstActionButton";
 import { timerStore } from "../state/timerStore";
@@ -52,9 +52,6 @@ const QUESTS: QuestItem[] = [
   { id: "foraging-route", title: "Foraging Route", durationLabel: "25m" },
   { id: "artisan-workbench", title: "Artisan Workbench", durationLabel: "25m" },
 ];
-
-const FARMHOUSE_IMAGE_URI =
-  "https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=2568&auto=format&fit=crop";
 
 const PANEL_PATTERN_STYLE: ViewStyle = Platform.OS === "web"
   ? ({
@@ -587,11 +584,8 @@ export function TimerScreen() {
   );
 
   const rightPanel = (
-    <ImageBackground
-      source={{ uri: FARMHOUSE_IMAGE_URI }}
-      style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}
-    >
-      <View style={styles.rightPanelOverlay} />
+    <View style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}>
+      <PixelSceneryBackground />
       <View style={styles.rightContent}>
         <View style={styles.taskHeader}>
           <View style={styles.locationTag}>
@@ -612,7 +606,7 @@ export function TimerScreen() {
 
         <AchievementBadge completedSessions={entries.length} />
       </View>
-    </ImageBackground>
+    </View>
   );
 
   const shell = (
@@ -914,11 +908,6 @@ const styles = StyleSheet.create({
   rightPanelMobile: {
     minHeight: 620,
     width: "100%",
-  },
-  rightPanelOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(68,166,154,0.72)",
-    zIndex: 1,
   },
   root: {
     backgroundColor: "#000",
