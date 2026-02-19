@@ -87,7 +87,7 @@ export function CircularTimer({
             <Stop offset="55%"  stopColor={theme.colors.glowWarm} stopOpacity="0.16" />
             <Stop offset="100%" stopColor={theme.colors.glowWarm} stopOpacity="0"    />
           </RadialGradient>
-          {/* Crop-green progress glow */}
+          {/* Accent-green progress glow */}
           <RadialGradient id="accentGlow" cx="50%" cy="50%" r="50%">
             <Stop offset="0%"   stopColor={theme.colors.accent} stopOpacity="0.14" />
             <Stop offset="100%" stopColor={theme.colors.accent} stopOpacity="0"    />
@@ -174,7 +174,7 @@ export function CircularTimer({
         <Text style={[styles.timeLabel, { fontSize: timeFontSize }]}>
           {formatSeconds(remainingSec)}
         </Text>
-        <Text style={[styles.caption, { fontSize: captionSize }]}>farm day</Text>
+        <Text style={[styles.caption, { fontSize: captionSize }]}>focus session</Text>
       </View>
     </View>
   );

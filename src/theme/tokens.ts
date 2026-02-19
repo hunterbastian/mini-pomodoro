@@ -10,7 +10,7 @@ const monoFont =
 /* ─────────────────────────────────────────────────────────
  * Stardew-inspired palette
  *
- * Daylight sky + farm wood + crop greens.
+ * Daylight sky + warm wood + fresh greens.
  * Bright and cozy, with high-contrast game-like panel edges.
  * ───────────────────────────────────────────────────────── */
 export const theme = {
@@ -21,7 +21,7 @@ export const theme = {
     surfaceMuted:    "#e8bf7d",
     surfaceElevated: "#d7a86b",
 
-    // Farm accents
+    // Main accents
     accent:          "#5f9238",
     accentSecondary: "#3f6a24",
     accentGlow:      "#f4cf63",

@@ -1,12 +1,12 @@
 /* ─────────────────────────────────────────────────────────
- * DitherArt — Stardew Valley farm banner
+ * DitherArt — Stardew Valley style landscape banner
  *
  * Scene (left → right):
  *   Sky with warm sunrise gradient + dithered clouds
- *   Rolling green hills, dirt path, wooden fence
- *   Left: farmhouse with red roof, chimney, warm window glow
- *   Center: tilled soil rows, crops (wheat/turnips/pumpkin)
- *   Right: oak tree, small chicken, sunflower
+ *   Rolling green hills, path, wooden fence
+ *   Left: cottage with red roof, chimney, warm window glow
+ *   Center: textured field rows with colorful patches
+ *   Right: oak tree, small bird, sunflower
  *   Foreground: grass tuft, wildflowers
  *
  * Canvas: 80 × 26 pixels, PIXEL = 4 px → 320 × 104 rendered
@@ -45,7 +45,7 @@ const HILL_SHADOW = "#518536";
 const HILL_DARK   = "#3f6d2a";
 const DIRT_PATH   = "#b88953";
 const DIRT_SHADOW = "#8d6437";
-// Farmhouse
+// Cottage
 const ROOF_MAIN   = "#c54c2b";   // red SDV roof
 const ROOF_SHADOW = "#88321a";
 const WALL_MAIN   = "#f2d29f";   // warm cream wall
@@ -54,7 +54,7 @@ const WINDOW_GLOW = "#ffd86c";   // warm candlelight
 const WINDOW_DK   = "#d39f34";
 const CHIMNEY     = "#6d533c";
 const SMOKE       = "#b6c8db";
-// Crops
+// Field patches
 const SOIL        = "#8b5a2e";
 const SOIL_DK     = "#6d4321";
 const CROP_GREEN  = "#6cbf3b";
@@ -162,7 +162,7 @@ function buildScene(): Grid {
   dith(g, 0, 16, W - 1, 17, HILL_SHADOW, HILL_DARK, 0.5);
   fill(g, 0, 18, W - 1, 25, HILL_DARK);
 
-  /* ── Tilled soil rows (crops area x=28–55, rows 18–24) ── */
+  /* ── Tilled soil rows (field area x=28–55, rows 18–24) ── */
   for (let y = 18; y <= 24; y++) {
     for (let x = 28; x <= 55; x++) {
       p(g, x, y, bayer(x, y) < 0.45 ? SOIL : SOIL_DK);
@@ -176,7 +176,7 @@ function buildScene(): Grid {
   /* ── Dirt path (center bottom, cols 36–44, rows 23–25) ── */
   dith(g, 36, 23, 44, 25, DIRT_PATH, DIRT_SHADOW, 0.55);
 
-  /* ── FARMHOUSE (cols 2–18, rows 10–24) ─────────────────── */
+  /* ── COTTAGE (cols 2–18, rows 10–24) ───────────────────── */
   // Chimney (col 6, rows 8–11)
   fill(g, 6, 8, 7, 11, CHIMNEY);
   p(g, 6, 7, bayer(6,7)<0.5 ? SMOKE : null);
@@ -241,7 +241,7 @@ function buildScene(): Grid {
   hline(g, 19, 27, 20, FENCE_WOOD);
   hline(g, 19, 27, 22, FENCE_SHADOW);
 
-  /* ── Crops ─────────────────────────────────────────────── */
+  /* ── Field details ─────────────────────────────────────── */
   // Wheat stalks (cols 28–34, rows 15–21)
   for (let x = 29; x <= 34; x += 3) {
     vline(g, x, 17, 21, CROP_GREEN);

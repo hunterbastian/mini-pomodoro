@@ -106,7 +106,7 @@ function AnimatedRow({
         </View>
       </View>
       <View style={styles.rowBadge}>
-        <Text style={styles.rowBadgeText}>+1 DAY</Text>
+        <Text style={styles.rowBadgeText}>+1 SESSION</Text>
       </View>
     </Animated.View>
   );
@@ -184,11 +184,11 @@ export function HistoryScreen() {
           <View style={styles.headerTextWrap}>
             <View style={styles.headerTitleRow}>
               <View>
-                <Text style={styles.title}>▓ FARMER'S LOG</Text>
-                <Text style={styles.subtitle}>DAY CYCLES COMPLETED</Text>
+                <Text style={styles.title}>▓ SESSION LOG</Text>
+                <Text style={styles.subtitle}>FOCUS SESSIONS COMPLETED</Text>
                 {entries.length > 0 && (
                   <Text style={styles.sessionCount}>
-                    {entries.length} HARVEST{entries.length === 1 ? "" : "S"} COMPLETE
+                    {entries.length} SESSION{entries.length === 1 ? "" : "S"} COMPLETE
                   </Text>
                 )}
               </View>
@@ -207,8 +207,8 @@ export function HistoryScreen() {
         ListEmptyComponent={
           <View style={[styles.emptyWrap, { width: contentWidth }]}>
             <PixelFlower sessionCount={0} size={96} />
-            <Text style={styles.emptyTitle}>// NO HARVESTS YET</Text>
-            <Text style={styles.emptySubtitle}>Complete one farm day to begin your journal.</Text>
+            <Text style={styles.emptyTitle}>// NO SESSIONS YET</Text>
+            <Text style={styles.emptySubtitle}>Complete one focus session to begin your journal.</Text>
           </View>
         }
         renderItem={({ item, index }) => (

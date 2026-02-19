@@ -19,6 +19,7 @@ jest.mock("../utils/chime", () => ({
 }));
 
 jest.mock("../utils/notifications", () => ({
+  ensureBrowserAlarmPermissionAsync: jest.fn(async () => undefined),
   sendCompletionNotificationAsync: jest.fn(async () => undefined),
 }));
 
@@ -82,21 +83,21 @@ describe("TimerScreen", () => {
       expect(timerStore.hydrate).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.press(screen.getByText("Start day"));
+    fireEvent.press(screen.getByText("Start session"));
 
     await waitFor(() => {
       expect(timerStore.start).toHaveBeenCalledTimes(1);
-      expect(screen.getByText("Pause day")).toBeTruthy();
+      expect(screen.getByText("Pause")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Pause day"));
+    fireEvent.press(screen.getByText("Pause"));
 
     await waitFor(() => {
       expect(timerStore.pause).toHaveBeenCalledTimes(1);
-      expect(screen.getByText("Back to farm")).toBeTruthy();
+      expect(screen.getByText("Resume")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("Reset day"));
+    fireEvent.press(screen.getByText("Reset"));
 
     await waitFor(() => {
       expect(timerStore.reset).toHaveBeenCalledTimes(1);

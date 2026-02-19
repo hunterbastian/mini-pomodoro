@@ -44,7 +44,10 @@ import { theme } from "../theme/tokens";
 import type { PersistedRunState } from "../types/session";
 import { computeRemainingSec, POMODORO_SECONDS } from "../utils/time";
 import { playCompletionChimeAsync } from "../utils/chime";
-import { sendCompletionNotificationAsync } from "../utils/notifications";
+import {
+  ensureBrowserAlarmPermissionAsync,
+  sendCompletionNotificationAsync,
+} from "../utils/notifications";
 import { logAnalyticsEvent } from "../utils/analytics";
 
 /* ─── Timing constants ──────────────────────────────────── */
@@ -99,15 +102,15 @@ const MAX_WIDTH  = { tablet: 600, desktop: 680, desktopShell: 1120 };
 
 /* ─── Helpers ───────────────────────────────────────────── */
 function statusLabel(s: PersistedRunState["status"]): string {
-  if (s === "running") return "Farming";
-  if (s === "paused")  return "Resting";
-  return "New day ready";
+  if (s === "running") return "Focusing";
+  if (s === "paused")  return "Paused";
+  return "Ready";
 }
 
 function primaryLabel(s: PersistedRunState["status"]): string {
-  if (s === "running") return "Pause day";
-  if (s === "paused")  return "Back to farm";
-  return "Start day";
+  if (s === "running") return "Pause";
+  if (s === "paused")  return "Resume";
+  return "Start session";
 }
 
 function formatDate(iso: string): string {
@@ -357,10 +360,12 @@ export function TimerScreen() {
         await timerStore.pause();
         await logAnalyticsEvent("pomodoro_paused", { remaining_sec: runState.remainingSec });
       } else if (runState.status === "paused") {
+        await ensureBrowserAlarmPermissionAsync();
         await timerStore.resume();
         await logAnalyticsEvent("pomodoro_resumed", { remaining_sec: runState.remainingSec });
       } else {
         setIsModalVisible(false);
+        await ensureBrowserAlarmPermissionAsync();
         await timerStore.start();
         await logAnalyticsEvent("pomodoro_started", { duration_sec: SESSION_DURATION_SEC });
       }
@@ -383,6 +388,7 @@ export function TimerScreen() {
     try {
       setIsModalVisible(false);
       setErrorMessage(null);
+      await ensureBrowserAlarmPermissionAsync();
       await timerStore.start();
       await logAnalyticsEvent("pomodoro_started_from_modal", { duration_sec: SESSION_DURATION_SEC });
       await syncFromStorage();
@@ -416,7 +422,7 @@ export function TimerScreen() {
       <Animated.View
         style={[styles.heroHeader, { opacity: headerOpacity, transform: [{ translateY: headerTranslate }] }]}
       >
-        <Text style={styles.appName}>STARDEW FOCUS</Text>
+        <Text style={styles.appName}>FOCUS TIMER</Text>
         <Text style={styles.statusText}>{statusText}</Text>
       </Animated.View>
 
@@ -464,7 +470,7 @@ export function TimerScreen() {
           ]}
         >
           <Text style={[styles.secondaryBtnText, resetDisabled && styles.secondaryBtnTextDisabled]}>
-            Reset day
+            Reset
           </Text>
         </Pressable>
       </Animated.View>
@@ -489,8 +495,8 @@ export function TimerScreen() {
 
             <View style={[styles.desktopHistoryPanel, { width: historyWidth }]}>
               <Animated.View style={[styles.historyHeaderDesktop, { opacity: historyOpacity }]}>
-                <Text style={styles.historyTitle}>Farmer's log</Text>
-                <Text style={styles.historySubtitle}>completed day cycles</Text>
+                <Text style={styles.historyTitle}>Session log</Text>
+                <Text style={styles.historySubtitle}>completed focus sessions</Text>
                 {!!historyErrorMessage && <Text style={styles.errorText}>{historyErrorMessage}</Text>}
               </Animated.View>
 
@@ -500,9 +506,9 @@ export function TimerScreen() {
                 keyExtractor={(item) => item.id}
                 ListEmptyComponent={
                   <View style={styles.emptyWrapDesktop}>
-                    <Text style={styles.emptyMug}>🌻</Text>
-                    <Text style={styles.emptyTitle}>No harvests yet</Text>
-                    <Text style={styles.emptySubtitle}>Finish your first farm day to log it.</Text>
+                    <Text style={styles.emptyMug}>⏱</Text>
+                    <Text style={styles.emptyTitle}>No sessions yet</Text>
+                    <Text style={styles.emptySubtitle}>Finish your first focus session to log it.</Text>
                   </View>
                 }
                 renderItem={({ item, index }) => (
@@ -531,17 +537,17 @@ export function TimerScreen() {
             <View style={{ width: stackedContentWidth }}>
               {heroCard}
               <Animated.View style={[styles.historyHeader, { opacity: historyOpacity }]}>
-                <Text style={styles.historyTitle}>Farmer's log</Text>
-                <Text style={styles.historySubtitle}>completed day cycles</Text>
+                <Text style={styles.historyTitle}>Session log</Text>
+                <Text style={styles.historySubtitle}>completed focus sessions</Text>
                 {!!historyErrorMessage && <Text style={styles.errorText}>{historyErrorMessage}</Text>}
               </Animated.View>
             </View>
           }
           ListEmptyComponent={
             <View style={[styles.emptyWrap, { width: stackedContentWidth }]}>
-              <Text style={styles.emptyMug}>🌻</Text>
-              <Text style={styles.emptyTitle}>No harvests yet</Text>
-              <Text style={styles.emptySubtitle}>Finish your first farm day to log it.</Text>
+              <Text style={styles.emptyMug}>⏱</Text>
+              <Text style={styles.emptyTitle}>No sessions yet</Text>
+              <Text style={styles.emptySubtitle}>Finish your first focus session to log it.</Text>
             </View>
           }
           renderItem={({ item, index }) => (
@@ -576,11 +582,11 @@ export function TimerScreen() {
             <View style={styles.modalStripe} />
 
             <Animated.Text style={[styles.modalTitle, { opacity: modalTitleOpacity }]}>
-              Harvest complete!
+              Session complete!
             </Animated.Text>
 
             <Animated.Text style={[styles.modalBody, { opacity: modalBodyOpacity }]}>
-              You finished one full farm day.{"\n"}Take a short rest, then tend the next crop.
+              You finished one full focus session.{"\n"}Take a short break, then keep going.
             </Animated.Text>
 
             <View style={[styles.modalActions, isNarrow && styles.modalActionsStacked]}>
@@ -592,7 +598,7 @@ export function TimerScreen() {
                   onPress={dismissModal}
                   style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.btnPressed]}
                 >
-                  <Text style={styles.modalSecondaryBtnText}>Campfire break</Text>
+                  <Text style={styles.modalSecondaryBtnText}>Take break</Text>
                 </Pressable>
               </Animated.View>
 
@@ -604,7 +610,7 @@ export function TimerScreen() {
                   onPress={handleNextSession}
                   style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.btnPressed]}
                 >
-                  <Text style={styles.modalPrimaryBtnText}>Start next day</Text>
+                  <Text style={styles.modalPrimaryBtnText}>Start next session</Text>
                 </Pressable>
               </Animated.View>
             </View>
