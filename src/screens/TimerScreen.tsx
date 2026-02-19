@@ -48,10 +48,10 @@ const SHORT_BREAK_SECONDS = 5 * 60;
 const LONG_BREAK_SECONDS = 15 * 60;
 
 const QUESTS: QuestItem[] = [
-  { id: "spring-crop-planning", title: "Spring Crop Planning", durationLabel: "25m" },
-  { id: "watering-the-fields", title: "Watering The Fields", durationLabel: "25m" },
-  { id: "foraging-route", title: "Foraging Route", durationLabel: "25m" },
-  { id: "artisan-workbench", title: "Artisan Workbench", durationLabel: "25m" },
+  { id: "deep-work-sprint", title: "Deep Work Sprint", durationLabel: "25m" },
+  { id: "code-review-pass", title: "Code Review Pass", durationLabel: "25m" },
+  { id: "project-planning", title: "Project Planning", durationLabel: "25m" },
+  { id: "inbox-triage", title: "Inbox Triage", durationLabel: "25m" },
 ];
 
 const PANEL_PATTERN_STYLE: ViewStyle = Platform.OS === "web"
@@ -601,11 +601,11 @@ export function TimerScreen() {
 
   const rightPanel = (
     <View style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}>
-      <View style={styles.rightContent}>
+      <ScrollView contentContainerStyle={styles.rightContent} showsVerticalScrollIndicator={false}>
         <View style={styles.taskHeader}>
           <View style={styles.locationTag}>
-            <Text style={styles.locationCode}>w1</Text>
-            <Text style={styles.locationText}>Pelican Town Farm</Text>
+            <Text style={styles.locationCode}>q1</Text>
+            <Text style={styles.locationText}>Focus Grove</Text>
           </View>
           <Text style={styles.networkIcon}>📶</Text>
         </View>
@@ -626,7 +626,7 @@ export function TimerScreen() {
         {!!historyErrorMessage && <Text style={styles.historyError}>{historyErrorMessage}</Text>}
 
         <AchievementBadge completedSessions={entries.length} />
-      </View>
+      </ScrollView>
     </View>
   );
 
@@ -699,7 +699,7 @@ export function TimerScreen() {
 const styles = StyleSheet.create({
   backdropShade: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 226, 182, 0.08)",
+    backgroundColor: "rgba(255, 244, 212, 0.05)",
   },
   btnPill: {
     alignItems: "center",
@@ -740,9 +740,9 @@ const styles = StyleSheet.create({
   },
   centerPanel: {
     alignItems: "center",
-    borderLeftColor: "rgba(46, 34, 47, 0.45)",
+    borderLeftColor: "rgba(34, 34, 34, 0.45)",
     borderLeftWidth: 2,
-    borderRightColor: "rgba(46, 34, 47, 0.45)",
+    borderRightColor: "rgba(34, 34, 34, 0.45)",
     borderRightWidth: 2,
     flex: 1,
     justifyContent: "center",
@@ -763,27 +763,27 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   currentTaskCard: {
-    backgroundColor: "rgba(0,0,0,0.42)",
-    borderColor: "rgba(255,255,255,0.22)",
-    borderRadius: 20,
-    borderWidth: 1,
+    backgroundColor: "#e6dcb8",
+    borderColor: "#222",
+    borderRadius: 2,
+    borderWidth: 3,
     marginBottom: theme.spacing.lg,
     overflow: "hidden",
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
   },
   currentTaskLabel: {
-    color: theme.colors.accentGlow,
+    color: "#704731",
     fontFamily: theme.typography.heading,
-    fontSize: 14,
+    fontSize: 13,
     letterSpacing: 1,
     marginBottom: theme.spacing.xs,
     textTransform: "uppercase",
   },
   currentTaskTitle: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
-    fontSize: 38,
-    lineHeight: 42,
+    fontSize: 30,
+    lineHeight: 34,
   },
   desktopWrap: {
     alignItems: "center",
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xl,
   },
   errorText: {
-    color: "#ffd9d1",
+    color: "#7f3121",
     fontFamily: theme.typography.body,
     fontSize: 12,
     marginTop: theme.spacing.md,
@@ -802,15 +802,15 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   historyError: {
-    color: "#ffe4dc",
+    color: "#8d3726",
     fontFamily: theme.typography.body,
     fontSize: 12,
     marginTop: theme.spacing.md,
     textAlign: "right",
   },
   leftPanel: {
-    backgroundColor: "rgba(98, 71, 44, 0.34)",
-    borderColor: "rgba(46, 34, 47, 0.45)",
+    backgroundColor: "rgba(230, 220, 184, 0.84)",
+    borderColor: "rgba(34, 34, 34, 0.62)",
     borderRightWidth: 2,
     flexShrink: 0,
     justifyContent: "flex-start",
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     width: 250,
   },
   leftPanelHint: {
-    color: "rgba(255,255,255,0.82)",
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 12,
     letterSpacing: 0.8,
@@ -833,18 +833,18 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   locationCode: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 18,
     marginRight: 6,
-    opacity: 0.9,
+    opacity: 0.88,
   },
   locationTag: {
     alignItems: "center",
     flexDirection: "row",
   },
   locationText: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 20,
   },
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xl,
   },
   modeTitle: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 16,
     letterSpacing: 1,
@@ -936,9 +936,9 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   networkIcon: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontSize: 20,
-    opacity: 0.75,
+    opacity: 0.62,
   },
   resetButton: {
     alignItems: "center",
@@ -968,12 +968,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   rightContent: {
-    flex: 1,
+    flexGrow: 1,
+    gap: theme.spacing.sm,
     padding: 22,
-    zIndex: 2,
+    paddingBottom: 30,
   },
   rightPanel: {
-    backgroundColor: "rgba(117, 84, 52, 0.2)",
+    backgroundColor: "rgba(230, 220, 184, 0.48)",
     flexShrink: 0,
     minHeight: 0,
     width: 360,
@@ -994,15 +995,15 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.md,
   },
   shell: {
-    backgroundColor: "rgba(146, 108, 70, 0.82)",
-    borderColor: "#4f3825",
-    borderRadius: theme.radius.lg,
-    borderWidth: 2,
+    backgroundColor: "rgba(230, 220, 184, 0.86)",
+    borderColor: "#222",
+    borderRadius: 6,
+    borderWidth: 3,
     overflow: "hidden",
-    shadowColor: "rgba(14, 9, 6, 0.9)",
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.65,
-    shadowRadius: 22,
+    shadowColor: "rgba(0,0,0,0.6)",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.62,
+    shadowRadius: 12,
   },
   shellDesktop: {
     flexDirection: "row",
@@ -1035,7 +1036,7 @@ const styles = StyleSheet.create({
   },
   taskHeader: {
     alignItems: "flex-end",
-    borderBottomColor: "rgba(255,255,255,0.82)",
+    borderBottomColor: "rgba(59, 33, 22, 0.55)",
     borderBottomWidth: 2,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1050,7 +1051,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   timerDisplayText: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 18,
     letterSpacing: 0.8,
@@ -1070,8 +1071,8 @@ const styles = StyleSheet.create({
   },
   sunRow: {
     alignItems: "center",
-    backgroundColor: "rgba(255, 224, 148, 0.28)",
-    borderColor: "rgba(67, 49, 30, 0.6)",
+    backgroundColor: "rgba(245, 214, 148, 0.65)",
+    borderColor: "rgba(34, 34, 34, 0.55)",
     borderRadius: theme.radius.pill,
     borderWidth: 1,
     flexDirection: "row",
@@ -1081,7 +1082,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   sunText: {
-    color: theme.colors.surface,
+    color: "#3b2116",
     fontFamily: theme.typography.heading,
     fontSize: 11,
     letterSpacing: 0.6,
