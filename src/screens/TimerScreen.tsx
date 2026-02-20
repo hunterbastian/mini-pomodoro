@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,17 +9,11 @@ import {
   useWindowDimensions,
   View,
   type AppStateStatus,
-  type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AchievementBadge } from "../components/AchievementBadge";
 import { CircularTimer } from "../components/CircularTimer";
-import { PixelSceneryBackground } from "../components/PixelSceneryBackground";
 import { QuestList, type QuestItem } from "../components/QuestList";
-import { StickerJournal } from "../components/StickerJournal";
-import { StarburstActionButton } from "../components/StarburstActionButton";
-import { TreeGrowthCard } from "../components/TreeGrowthCard";
 import { timerStore } from "../state/timerStore";
 import { historyRepo } from "../storage/historyRepo";
 import type { PersistedRunState, SessionEntry } from "../types/session";
@@ -31,7 +24,7 @@ import {
   ensureBrowserAlarmPermissionAsync,
   sendCompletionNotificationAsync,
 } from "../utils/notifications";
-import { computeRemainingSec, POMODORO_SECONDS } from "../utils/time";
+import { computeRemainingSec } from "../utils/time";
 import { logAnalyticsEvent } from "../utils/analytics";
 
 type BreakMode = "short_break" | "long_break";
@@ -54,15 +47,6 @@ const QUESTS: QuestItem[] = [
   { id: "project-planning", title: "Project Planning", durationLabel: "25m" },
   { id: "inbox-triage", title: "Inbox Triage", durationLabel: "25m" },
 ];
-
-const PANEL_PATTERN_STYLE: ViewStyle = Platform.OS === "web"
-  ? ({
-      backgroundImage:
-        "linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.04) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.04) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.04) 75%)",
-      backgroundPosition: "0 0, 0 20px, 20px -20px, -20px 0px",
-      backgroundSize: "40px 40px",
-    } as unknown as ViewStyle)
-  : {};
 
 function getBreakDuration(mode: BreakMode): number {
   return mode === "short_break" ? SHORT_BREAK_SECONDS : LONG_BREAK_SECONDS;
@@ -90,18 +74,6 @@ function primaryActionLabel(mode: SessionMode, status: PersistedRunState["status
   return "Start";
 }
 
-function formatTimer(totalSeconds: number): string {
-  const clamped = Math.max(0, Math.round(totalSeconds));
-  const hours = Math.floor(clamped / 3600)
-    .toString()
-    .padStart(2, "0");
-  const minutes = Math.floor((clamped % 3600) / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = (clamped % 60).toString().padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
-}
-
 export function TimerScreen() {
   const [runState, setRunState] = useState<PersistedRunState>(timerStore.getIdleState());
   const [breakState, setBreakState] = useState<BreakRunState>(() => createBreakState("short_break"));
@@ -119,7 +91,7 @@ export function TimerScreen() {
 
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
-  const timerSize = isDesktop ? 300 : Math.max(200, Math.min(width - 120, 268));
+  const timerSize = isDesktop ? 248 : Math.max(188, Math.min(width - 90, 236));
 
   useEffect(() => {
     runStateRef.current = runState;
@@ -455,12 +427,9 @@ export function TimerScreen() {
 
   const activeStatus = selectedMode === "focus" ? runState.status : breakState.status;
   const remainingSec = selectedMode === "focus" ? runState.remainingSec : breakState.remainingSec;
-  const isFocusRunning = selectedMode === "focus" && runState.status === "running";
-  const focusProgress = Math.max(0, Math.min(1, 1 - runState.remainingSec / SESSION_DURATION_SEC));
-
   const primaryActionText = primaryActionLabel(selectedMode, activeStatus);
-  const timerLabel = formatTimer(remainingSec);
   const modeLabel = modeDisplay(selectedMode);
+  const completedSessionCount = entries.length;
 
   const activeQuest = useMemo(() => {
     return QUESTS.find((quest) => quest.id === activeQuestId) ?? QUESTS[0]!;
@@ -491,38 +460,51 @@ export function TimerScreen() {
     };
   }, [lastCompletedMode]);
 
-  const leftPanel = (
-    <View style={[styles.leftPanel, PANEL_PATTERN_STYLE, !isDesktop && styles.leftPanelMobile]}>
-      <View style={styles.timerDisplay}>
-        <Text style={styles.heartIcon}>❤️</Text>
-        <Text style={styles.timerDisplayText}>{timerLabel}</Text>
+  const panel = (
+    <View style={styles.panel}>
+      <Text style={styles.modeTitle}>{modeLabel}</Text>
+      <Text style={styles.breatherCopy}>Settle in and take a breather.</Text>
+
+      <View style={styles.timerRingWrap}>
+        <CircularTimer
+          remainingSec={remainingSec}
+          size={timerSize}
+          totalSec={selectedMode === "focus" ? SESSION_DURATION_SEC : getBreakDuration(selectedMode)}
+        />
       </View>
 
-      <Text style={styles.leftPanelHint}>Session Modes</Text>
+      <Pressable
+        accessibilityLabel="Primary timer action"
+        accessibilityRole="button"
+        onPress={() => void handlePrimaryPress()}
+        style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
+      >
+        <Text style={styles.primaryButtonText}>{primaryActionText}</Text>
+      </Pressable>
 
-      <View style={styles.controlStack}>
+      <View style={styles.modeRow}>
         <Pressable
           accessibilityRole="button"
           onPress={() => void handleModeSelect("focus")}
           style={({ pressed }) => [
-            styles.btnPill,
-            selectedMode === "focus" && styles.btnPillActive,
-            pressed && styles.btnPillPressed,
+            styles.modeChip,
+            selectedMode === "focus" && styles.modeChipActive,
+            pressed && styles.modeChipPressed,
           ]}
         >
-          <Text style={[styles.btnPillText, selectedMode === "focus" && styles.btnPillTextActive]}>Focus</Text>
+          <Text style={[styles.modeChipText, selectedMode === "focus" && styles.modeChipTextActive]}>Focus</Text>
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
           onPress={() => void handleModeSelect("short_break")}
           style={({ pressed }) => [
-            styles.btnPill,
-            selectedMode === "short_break" && styles.btnPillActive,
-            pressed && styles.btnPillPressed,
+            styles.modeChip,
+            selectedMode === "short_break" && styles.modeChipActive,
+            pressed && styles.modeChipPressed,
           ]}
         >
-          <Text style={[styles.btnPillText, selectedMode === "short_break" && styles.btnPillTextActive]}>
+          <Text style={[styles.modeChipText, selectedMode === "short_break" && styles.modeChipTextActive]}>
             Short Break
           </Text>
         </Pressable>
@@ -531,129 +513,51 @@ export function TimerScreen() {
           accessibilityRole="button"
           onPress={() => void handleModeSelect("long_break")}
           style={({ pressed }) => [
-            styles.btnPill,
-            styles.btnPillSecondary,
-            selectedMode === "long_break" && styles.btnPillActive,
-            pressed && styles.btnPillPressed,
+            styles.modeChip,
+            selectedMode === "long_break" && styles.modeChipActive,
+            pressed && styles.modeChipPressed,
           ]}
         >
-          <Text style={[styles.btnPillText, selectedMode === "long_break" && styles.btnPillTextActive]}>
+          <Text style={[styles.modeChipText, selectedMode === "long_break" && styles.modeChipTextActive]}>
             Long Break
           </Text>
         </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          disabled={resetDisabled}
-          onPress={() => void handleResetPress()}
-          style={({ pressed }) => [
-            styles.resetButton,
-            resetDisabled && styles.resetButtonDisabled,
-            pressed && !resetDisabled && styles.resetButtonPressed,
-          ]}
-        >
-          <Text style={styles.resetButtonText}>Reset</Text>
-        </Pressable>
       </View>
 
-      <View style={styles.settingsGrid}>
-        <Pressable accessibilityRole="button" style={styles.squareButton}>
-          <Text style={styles.squareButtonIcon}>☀️</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" style={styles.squareButton}>
-          <Text style={styles.squareButtonIcon}>⚙️</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" style={styles.squareButton}>
-          <Text style={styles.squareButtonIcon}>?</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={resetDisabled}
+        onPress={() => void handleResetPress()}
+        style={({ pressed }) => [
+          styles.resetButton,
+          resetDisabled && styles.resetButtonDisabled,
+          pressed && !resetDisabled && styles.resetButtonPressed,
+        ]}
+      >
+        <Text style={styles.resetButtonText}>Reset</Text>
+      </Pressable>
 
-      {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-    </View>
-  );
-
-  const centerPanel = (
-    <View style={[styles.centerPanel, !isDesktop && styles.centerPanelMobile]}>
-      <View style={styles.centerPanelInner}>
-        <Text style={styles.modeTitle}>{modeLabel}</Text>
-
-        <View style={styles.timerRingWrap}>
-          <CircularTimer
-            remainingSec={remainingSec}
-            size={timerSize}
-            totalSec={selectedMode === "focus" ? SESSION_DURATION_SEC : getBreakDuration(selectedMode)}
-          />
-        </View>
-
-        <View style={styles.sunRow}>
-          <Text style={styles.sunIcon}>☀️</Text>
-          <Text style={styles.sunText}>{isFocusRunning ? "sunlight building" : "sunlight idle"}</Text>
-        </View>
-
-        <Text style={styles.breatherCopy}>Settle in and take a breather.</Text>
-
-        <StarburstActionButton
-          isRunning={activeStatus === "running"}
-          label={primaryActionText}
-          onPress={handlePrimaryPress}
-          size={isDesktop ? 190 : 170}
-        />
-      </View>
-    </View>
-  );
-
-  const rightPanel = (
-    <View style={[styles.rightPanel, !isDesktop && styles.rightPanelMobile]}>
-      <ScrollView contentContainerStyle={styles.rightContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.currentTaskCard}>
-          <Text style={styles.currentTaskLabel}>Current Quest</Text>
-          <Text style={styles.currentTaskTitle}>{activeQuest.title}</Text>
-        </View>
-
+      <View style={styles.questSection}>
+        <Text style={styles.sectionLabel}>Current Quest</Text>
+        <Text style={styles.currentQuestTitle}>{activeQuest.title}</Text>
         <QuestList activeQuestId={activeQuest.id} onSelectQuest={setActiveQuestId} quests={QUESTS} />
+      </View>
 
-        <TreeGrowthCard
-          completedSessions={entries.length}
-          growthProgress={focusProgress}
-          isActive={isFocusRunning}
-        />
-
-        {!!historyErrorMessage && <Text style={styles.historyError}>{historyErrorMessage}</Text>}
-
-        <AchievementBadge completedSessions={entries.length} />
-        <StickerJournal completedSessions={entries.length} />
-      </ScrollView>
-    </View>
-  );
-
-  const shell = (
-    <View style={[styles.shell, isDesktop ? styles.shellDesktop : styles.shellMobile]}>
-      {isDesktop ? (
-        <>
-          {leftPanel}
-          {centerPanel}
-          {rightPanel}
-        </>
-      ) : (
-        <>
-          {centerPanel}
-          {leftPanel}
-          {rightPanel}
-        </>
-      )}
+      {!!historyErrorMessage && <Text style={styles.errorText}>{historyErrorMessage}</Text>}
+      {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      <Text style={styles.sessionText}>
+        {completedSessionCount} completed session{completedSessionCount === 1 ? "" : "s"}
+      </Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.root}>
-      <PixelSceneryBackground />
-      <View pointerEvents="none" style={styles.backdropShade} />
-
       {isDesktop ? (
-        <View style={styles.desktopWrap}>{shell}</View>
+        <View style={styles.desktopWrap}>{panel}</View>
       ) : (
         <ScrollView contentContainerStyle={styles.mobileScroll}>
-          {shell}
+          {panel}
         </ScrollView>
       )}
 
@@ -693,165 +597,37 @@ export function TimerScreen() {
 }
 
 const styles = StyleSheet.create({
-  backdropShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 244, 212, 0.05)",
-  },
-  btnPill: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.textPrimary,
-    borderRadius: theme.radius.pill,
-    borderWidth: 2,
-    minHeight: 54,
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing.md,
-    shadowColor: theme.colors.textPrimary,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.8,
-    shadowRadius: 0,
-  },
-  btnPillActive: {
-    backgroundColor: theme.colors.accentGlow,
-  },
-  btnPillPressed: {
-    opacity: 0.86,
-    transform: [{ translateX: 1 }, { translateY: 1 }],
-  },
-  btnPillSecondary: {
-    minHeight: 50,
-  },
   breatherCopy: {
-    color: "#6a5037",
+    color: "#7a6d58",
     fontFamily: theme.typography.body,
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: 0.4,
     marginBottom: theme.spacing.md,
     textAlign: "center",
     textTransform: "uppercase",
   },
-  btnPillText: {
+  currentQuestTitle: {
     color: theme.colors.textPrimary,
     fontFamily: theme.typography.heading,
     fontSize: 18,
-    letterSpacing: 0.5,
-  },
-  btnPillTextActive: {
-    color: theme.colors.textPrimary,
-  },
-  controlStack: {
-    gap: theme.spacing.sm,
-    width: "100%",
-  },
-  centerPanel: {
-    alignItems: "center",
-    borderLeftColor: "rgba(34, 34, 34, 0.45)",
-    borderLeftWidth: 2,
-    borderRightColor: "rgba(34, 34, 34, 0.45)",
-    borderRightWidth: 2,
-    flex: 1,
-    justifyContent: "center",
-    minHeight: 0,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.xl,
-  },
-  centerPanelInner: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  centerPanelMobile: {
-    borderBottomWidth: 2,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    paddingVertical: theme.spacing.lg,
-    width: "100%",
-  },
-  currentTaskCard: {
-    backgroundColor: "#e6dcb8",
-    borderColor: "#222",
-    borderRadius: 2,
-    borderWidth: 3,
-    marginBottom: theme.spacing.lg,
-    overflow: "hidden",
-    padding: theme.spacing.md,
-  },
-  currentTaskLabel: {
-    color: "#704731",
-    fontFamily: theme.typography.heading,
-    fontSize: 13,
-    letterSpacing: 1,
-    marginBottom: theme.spacing.xs,
-    textTransform: "uppercase",
-  },
-  currentTaskTitle: {
-    color: "#3b2116",
-    fontFamily: theme.typography.heading,
-    fontSize: 30,
-    lineHeight: 34,
+    marginBottom: theme.spacing.sm,
   },
   desktopWrap: {
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
   },
   errorText: {
-    color: "#7f3121",
+    color: theme.colors.danger,
     fontFamily: theme.typography.body,
     fontSize: 12,
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
     textAlign: "center",
   },
-  heartIcon: {
-    fontSize: 17,
-  },
-  historyError: {
-    color: "#8d3726",
-    fontFamily: theme.typography.body,
-    fontSize: 12,
-    marginTop: theme.spacing.md,
-    textAlign: "right",
-  },
-  leftPanel: {
-    backgroundColor: "rgba(230, 220, 184, 0.84)",
-    borderColor: "rgba(34, 34, 34, 0.62)",
-    borderRightWidth: 2,
-    flexShrink: 0,
-    justifyContent: "flex-start",
-    minHeight: 0,
-    padding: 22,
-    width: 250,
-  },
-  leftPanelHint: {
-    color: "#3b2116",
-    fontFamily: theme.typography.heading,
-    fontSize: 12,
-    letterSpacing: 0.8,
-    marginBottom: theme.spacing.md,
-    textAlign: "center",
-    textTransform: "uppercase",
-  },
-  leftPanelMobile: {
-    borderBottomWidth: 2,
-    borderRightWidth: 0,
-    width: "100%",
-  },
-  locationCode: {
-    color: "#3b2116",
-    fontFamily: theme.typography.heading,
-    fontSize: 18,
-    marginRight: 6,
-    opacity: 0.88,
-  },
-  locationTag: {
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  locationText: {
-    color: "#3b2116",
-    fontFamily: theme.typography.heading,
-    fontSize: 20,
+  mobileScroll: {
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   modalActions: {
     flexDirection: "row",
@@ -927,37 +703,92 @@ const styles = StyleSheet.create({
     fontSize: 24,
     letterSpacing: 0.6,
   },
-  mobileScroll: {
-    padding: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
+  modeChip: {
+    alignItems: "center",
+    backgroundColor: "transparent",
+    borderColor: theme.colors.borderSubtle,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 42,
+    paddingHorizontal: 8,
+  },
+  modeChipActive: {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderColor: theme.colors.border,
+  },
+  modeChipPressed: {
+    opacity: 0.82,
+  },
+  modeChipText: {
+    color: theme.colors.textSecondary,
+    fontFamily: theme.typography.heading,
+    fontSize: 13,
+    letterSpacing: 0.4,
+  },
+  modeChipTextActive: {
+    color: theme.colors.textPrimary,
+  },
+  modeRow: {
+    flexDirection: "row",
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+    width: "100%",
   },
   modeTitle: {
-    color: "#3b2116",
+    color: theme.colors.textPrimary,
     fontFamily: theme.typography.heading,
-    fontSize: 16,
-    letterSpacing: 1,
-    marginBottom: theme.spacing.lg,
+    fontSize: 15,
+    letterSpacing: 0.8,
+    marginBottom: theme.spacing.xs,
     textAlign: "center",
     textTransform: "uppercase",
   },
-  networkIcon: {
-    color: "#3b2116",
-    fontSize: 20,
-    opacity: 0.62,
+  panel: {
+    backgroundColor: "rgba(250, 245, 235, 0.95)",
+    borderColor: "rgba(126, 103, 74, 0.38)",
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    maxWidth: 650,
+    padding: theme.spacing.lg,
+    width: "100%",
+  },
+  primaryButton: {
+    alignItems: "center",
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accentSecondary,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    justifyContent: "center",
+    marginBottom: theme.spacing.md,
+    minHeight: 46,
+    width: "100%",
+  },
+  primaryButtonPressed: {
+    opacity: 0.86,
+  },
+  primaryButtonText: {
+    color: theme.colors.surface,
+    fontFamily: theme.typography.heading,
+    fontSize: 15,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  questSection: {
+    marginTop: theme.spacing.sm,
+    width: "100%",
   },
   resetButton: {
     alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.textPrimary,
-    borderRadius: theme.radius.pill,
-    borderWidth: 2,
-    marginTop: theme.spacing.xs,
-    minHeight: 48,
+    backgroundColor: "transparent",
+    borderColor: theme.colors.borderSubtle,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
     justifyContent: "center",
-    shadowColor: theme.colors.textPrimary,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.75,
-    shadowRadius: 0,
+    marginBottom: theme.spacing.md,
+    minHeight: 40,
+    width: "100%",
   },
   resetButtonDisabled: {
     opacity: 0.4,
@@ -966,131 +797,34 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   resetButtonText: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.textSecondary,
     fontFamily: theme.typography.heading,
-    fontSize: 14,
-    letterSpacing: 1,
+    fontSize: 13,
+    letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  rightContent: {
-    flexGrow: 1,
-    gap: theme.spacing.sm,
-    padding: 22,
-    paddingBottom: 30,
-  },
-  rightPanel: {
-    backgroundColor: "rgba(230, 220, 184, 0.48)",
-    flexShrink: 0,
-    minHeight: 0,
-    width: 360,
-  },
-  rightPanelMobile: {
-    minHeight: 0,
-    width: "100%",
-  },
   root: {
-    backgroundColor: "#1b263b",
+    backgroundColor: "#edf2f5",
     flex: 1,
   },
-  settingsGrid: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    justifyContent: "center",
-    marginTop: "auto",
-    paddingTop: theme.spacing.md,
-  },
-  shell: {
-    backgroundColor: "rgba(230, 220, 184, 0.86)",
-    borderColor: "#222",
-    borderRadius: 6,
-    borderWidth: 3,
-    overflow: "hidden",
-    shadowColor: "rgba(0,0,0,0.6)",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.62,
-    shadowRadius: 12,
-  },
-  shellDesktop: {
-    flexDirection: "row",
-    maxHeight: 760,
-    maxWidth: 1140,
-    minHeight: 620,
-    width: "88%",
-  },
-  shellMobile: {
-    width: "100%",
-  },
-  squareButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.textPrimary,
-    borderRadius: theme.radius.md,
-    borderWidth: 2,
-    height: 50,
-    justifyContent: "center",
-    shadowColor: theme.colors.textPrimary,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.75,
-    shadowRadius: 0,
-    width: 50,
-  },
-  squareButtonIcon: {
-    color: theme.colors.textPrimary,
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  taskHeader: {
-    alignItems: "flex-end",
-    borderBottomColor: "rgba(59, 33, 22, 0.55)",
-    borderBottomWidth: 2,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.lg,
-    paddingBottom: 10,
-  },
-  timerDisplay: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  timerDisplayText: {
-    color: "#3b2116",
-    fontFamily: theme.typography.heading,
-    fontSize: 18,
-    letterSpacing: 0.8,
-  },
-  timerRingWrap: {
-    alignItems: "center",
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderRadius: theme.radius.lg,
-    borderWidth: 0,
-    marginBottom: theme.spacing.md,
-    padding: 0,
-    width: "auto",
-  },
-  sunIcon: {
-    fontSize: 18,
-  },
-  sunRow: {
-    alignItems: "center",
-    backgroundColor: "rgba(245, 214, 148, 0.65)",
-    borderColor: "rgba(34, 34, 34, 0.55)",
-    borderRadius: theme.radius.pill,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: theme.spacing.md,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  sunText: {
-    color: "#3b2116",
+  sectionLabel: {
+    color: theme.colors.textMuted,
     fontFamily: theme.typography.heading,
     fontSize: 11,
     letterSpacing: 0.6,
+    marginBottom: 4,
     textTransform: "uppercase",
+  },
+  sessionText: {
+    color: theme.colors.textMuted,
+    fontFamily: theme.typography.body,
+    fontSize: 12,
+    marginTop: theme.spacing.md,
+    textAlign: "center",
+  },
+  timerRingWrap: {
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
+    width: "100%",
   },
 });
