@@ -1,13 +1,13 @@
 /* ─────────────────────────────────────────────────────────
- * CircularTimer — cozy edition
+ * CircularTimer — ambient outpost edition
  *
  * Layers (outside → in):
- *   1. Outer feather ring  (very thin, warm cream)
- *   2. Soft tick marks     (48 ticks, major every 4)
- *   3. Track ring          (warm dashed, muted taupe)
- *   4. Progress ring       (warm cinnamon, round caps)
- *   5. Inner ambient fill  (radial warm honey glow)
- *   6. Time label          (large Manrope semibold)
+ *   1. Outer feather ring  (faint amber trace)
+ *   2. Soft tick marks     (48 ticks, subdued)
+ *   3. Track ring          (dark dashed, barely visible)
+ *   4. Progress ring       (warm amber, round caps)
+ *   5. Inner ambient fill  (radial amber glow)
+ *   6. Time label          (monospace, pale)
  *   7. Caption             (small muted label)
  * ───────────────────────────────────────────────────────── */
 
@@ -82,15 +82,15 @@ export function CircularTimer({
     <View style={[styles.wrapper, { height: size, width: size }]}>
       <Svg height={size} width={size}>
         <Defs>
-          {/* Sunny ambient glow in center */}
+          {/* Deep amber glow in center */}
           <RadialGradient id="warmGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor={theme.colors.glowWarm} stopOpacity="0.55" />
-            <Stop offset="55%"  stopColor={theme.colors.glowWarm} stopOpacity="0.16" />
-            <Stop offset="100%" stopColor={theme.colors.glowWarm} stopOpacity="0"    />
+            <Stop offset="0%"   stopColor="#c8935a" stopOpacity="0.18" />
+            <Stop offset="55%"  stopColor="#c8935a" stopOpacity="0.05" />
+            <Stop offset="100%" stopColor="#c8935a" stopOpacity="0"    />
           </RadialGradient>
-          {/* Accent-green progress glow */}
+          {/* Accent amber progress glow */}
           <RadialGradient id="accentGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor={theme.colors.accent} stopOpacity="0.14" />
+            <Stop offset="0%"   stopColor={theme.colors.accent} stopOpacity="0.08" />
             <Stop offset="100%" stopColor={theme.colors.accent} stopOpacity="0"    />
           </RadialGradient>
         </Defs>
@@ -197,9 +197,9 @@ const styles = StyleSheet.create({
     position:       "absolute",
   },
   digitsPlate: {
-    backgroundColor: "rgba(118, 88, 58, 0.62)",
-    borderColor: "transparent",
-    borderWidth: 0,
+    backgroundColor: "rgba(10, 12, 15, 0.7)",
+    borderColor: "rgba(200, 147, 90, 0.15)",
+    borderWidth: 1,
     borderRadius: theme.radius.sm,
     marginBottom: 4,
   },

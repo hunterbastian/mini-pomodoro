@@ -1,93 +1,98 @@
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Defs, Pattern, Polygon, Rect } from "react-native-svg";
+import Svg, { Defs, Pattern, Polygon, Rect, Circle } from "react-native-svg";
 
 type Palette = {
-  cloudDark: string;
-  cloudLight: string;
-  grassA: string;
-  grassB: string;
-  ground: string;
-  mountainFar: string;
-  mountainNear: string;
+  groundDark: string;
+  groundMid: string;
+  horizonGlow: string;
+  horizonMid: string;
+  ridgeFar: string;
+  ridgeNear: string;
   skyA: string;
   skyB: string;
   skyC: string;
   skyD: string;
   skyE: string;
-  sunCore: string;
-  sunGlow: string;
+  starDim: string;
+  starBright: string;
 };
 
-const STEPPED_FPS = 8;
+const STEPPED_FPS = 6;
 const STEP_MS = Math.floor(1000 / STEPPED_FPS);
-const CYCLE_STEPS = 520;
+const CYCLE_STEPS = 600;
 
 const CYCLE_PALETTES: Palette[] = [
   {
-    cloudDark: "#d8e5ef",
-    cloudLight: "#f1f6fb",
-    grassA: "#80ae6a",
-    grassB: "#89b872",
-    ground: "#3f6077",
-    mountainFar: "#6a8fb0",
-    mountainNear: "#4f7695",
-    skyA: "#4f79a9",
-    skyB: "#628fc0",
-    skyC: "#76abd3",
-    skyD: "#d39a69",
-    skyE: "#efbc86",
-    sunCore: "#ffe8aa",
-    sunGlow: "#ffd27b",
+    groundDark: "#080a0d",
+    groundMid: "#0e1118",
+    horizonGlow: "#2a1e14",
+    horizonMid: "#1a1510",
+    ridgeFar: "#12151c",
+    ridgeNear: "#0c0f14",
+    skyA: "#060810",
+    skyB: "#080b14",
+    skyC: "#0a0e18",
+    skyD: "#10141e",
+    skyE: "#181820",
+    starDim: "#3a3830",
+    starBright: "#6a6250",
   },
   {
-    cloudDark: "#dde8f3",
-    cloudLight: "#f8fbff",
-    grassA: "#82b56d",
-    grassB: "#8dc078",
-    ground: "#46697f",
-    mountainFar: "#7498b8",
-    mountainNear: "#5b809f",
-    skyA: "#6a96c5",
-    skyB: "#7eabcf",
-    skyC: "#92bddf",
-    skyD: "#e3b47d",
-    skyE: "#f5cb95",
-    sunCore: "#fff2c4",
-    sunGlow: "#ffdd98",
+    groundDark: "#0a0c10",
+    groundMid: "#10141c",
+    horizonGlow: "#30241a",
+    horizonMid: "#1e1814",
+    ridgeFar: "#141820",
+    ridgeNear: "#0e1218",
+    skyA: "#080a14",
+    skyB: "#0a0e18",
+    skyC: "#0e121e",
+    skyD: "#141824",
+    skyE: "#1c1c28",
+    starDim: "#443c34",
+    starBright: "#7a6e58",
   },
   {
-    cloudDark: "#e3dfd0",
-    cloudLight: "#f7f1dd",
-    grassA: "#87ad63",
-    grassB: "#92ba6e",
-    ground: "#4f6980",
-    mountainFar: "#7f92ab",
-    mountainNear: "#667f99",
-    skyA: "#8f8eb0",
-    skyB: "#a18eb6",
-    skyC: "#bb91b1",
-    skyD: "#e49d73",
-    skyE: "#f0bf8a",
-    sunCore: "#ffe7a7",
-    sunGlow: "#ffcc7b",
+    groundDark: "#0c0e12",
+    groundMid: "#12161e",
+    horizonGlow: "#382a1e",
+    horizonMid: "#241c16",
+    ridgeFar: "#161a24",
+    ridgeNear: "#10141a",
+    skyA: "#0a0c16",
+    skyB: "#0c101a",
+    skyC: "#101420",
+    skyD: "#181c28",
+    skyE: "#20202c",
+    starDim: "#4a4238",
+    starBright: "#8a7e64",
   },
   {
-    cloudDark: "#d8cfbe",
-    cloudLight: "#eee2c9",
-    grassA: "#789b59",
-    grassB: "#83a863",
-    ground: "#3f5d75",
-    mountainFar: "#6c829c",
-    mountainNear: "#536b86",
-    skyA: "#676590",
-    skyB: "#7e7098",
-    skyC: "#a6789a",
-    skyD: "#d28d63",
-    skyE: "#e8ae76",
-    sunCore: "#ffd58b",
-    sunGlow: "#fbb96b",
+    groundDark: "#0a0c10",
+    groundMid: "#10141c",
+    horizonGlow: "#30241a",
+    horizonMid: "#1e1814",
+    ridgeFar: "#141820",
+    ridgeNear: "#0e1218",
+    skyA: "#080a14",
+    skyB: "#0a0e18",
+    skyC: "#0e121e",
+    skyD: "#141824",
+    skyE: "#1c1c28",
+    starDim: "#443c34",
+    starBright: "#7a6e58",
   },
+];
+
+// Sparse fixed star positions across the sky region (y < 65)
+const STAR_POSITIONS: [number, number][] = [
+  [12, 6], [28, 3], [45, 10], [67, 5], [88, 8],
+  [110, 4], [130, 7], [148, 3], [20, 18], [52, 15],
+  [78, 12], [95, 20], [120, 16], [140, 22], [8, 30],
+  [35, 25], [62, 28], [105, 32], [135, 26], [155, 30],
+  [15, 42], [42, 38], [72, 44], [98, 40], [125, 36],
+  [145, 45], [55, 50], [85, 48], [115, 52], [30, 55],
 ];
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -129,26 +134,24 @@ export function PixelSceneryBackground() {
     const to = CYCLE_PALETTES[nextIndex]!;
 
     return {
-      cloudDark: lerpColor(from.cloudDark, to.cloudDark, steppedProgress),
-      cloudLight: lerpColor(from.cloudLight, to.cloudLight, steppedProgress),
-      grassA: lerpColor(from.grassA, to.grassA, steppedProgress),
-      grassB: lerpColor(from.grassB, to.grassB, steppedProgress),
-      ground: lerpColor(from.ground, to.ground, steppedProgress),
-      mountainFar: lerpColor(from.mountainFar, to.mountainFar, steppedProgress),
-      mountainNear: lerpColor(from.mountainNear, to.mountainNear, steppedProgress),
+      groundDark: lerpColor(from.groundDark, to.groundDark, steppedProgress),
+      groundMid: lerpColor(from.groundMid, to.groundMid, steppedProgress),
+      horizonGlow: lerpColor(from.horizonGlow, to.horizonGlow, steppedProgress),
+      horizonMid: lerpColor(from.horizonMid, to.horizonMid, steppedProgress),
+      ridgeFar: lerpColor(from.ridgeFar, to.ridgeFar, steppedProgress),
+      ridgeNear: lerpColor(from.ridgeNear, to.ridgeNear, steppedProgress),
       skyA: lerpColor(from.skyA, to.skyA, steppedProgress),
       skyB: lerpColor(from.skyB, to.skyB, steppedProgress),
       skyC: lerpColor(from.skyC, to.skyC, steppedProgress),
       skyD: lerpColor(from.skyD, to.skyD, steppedProgress),
       skyE: lerpColor(from.skyE, to.skyE, steppedProgress),
-      sunCore: lerpColor(from.sunCore, to.sunCore, steppedProgress),
-      sunGlow: lerpColor(from.sunGlow, to.sunGlow, steppedProgress),
+      starDim: lerpColor(from.starDim, to.starDim, steppedProgress),
+      starBright: lerpColor(from.starBright, to.starBright, steppedProgress),
     };
   }, [step]);
 
-  const cloudOffsetOne = Math.floor(((step % 160) - 80) / 4);
-  const cloudOffsetTwo = Math.floor((80 - (step % 160)) / 5);
-  const sunFloatOffset = Math.floor(Math.sin((step / CYCLE_STEPS) * Math.PI * 2) * 3);
+  // Subtle star twinkle
+  const twinklePhase = step % 16;
 
   return (
     <View pointerEvents="none" style={styles.root}>
@@ -161,53 +164,59 @@ export function PixelSceneryBackground() {
         width="100%"
       >
         <Defs>
-          <Pattern height="4" id="pixelDither" patternUnits="userSpaceOnUse" width="4">
-            <Rect fill="#ffffff" fillOpacity={0.08} height="1" width="1" x="0" y="0" />
-            <Rect fill="#ffffff" fillOpacity={0.06} height="1" width="1" x="2" y="1" />
-            <Rect fill="#000000" fillOpacity={0.05} height="1" width="1" x="1" y="3" />
-            <Rect fill="#000000" fillOpacity={0.04} height="1" width="1" x="3" y="2" />
+          <Pattern height="4" id="pixelNoise" patternUnits="userSpaceOnUse" width="4">
+            <Rect fill="#ffffff" fillOpacity={0.015} height="1" width="1" x="0" y="0" />
+            <Rect fill="#ffffff" fillOpacity={0.01} height="1" width="1" x="2" y="2" />
+            <Rect fill="#000000" fillOpacity={0.03} height="1" width="1" x="1" y="3" />
+            <Rect fill="#000000" fillOpacity={0.02} height="1" width="1" x="3" y="1" />
           </Pattern>
         </Defs>
 
-        <Rect fill={colors.skyA} height="24" width="160" x="0" y="0" />
-        <Rect fill={colors.skyB} height="22" width="160" x="0" y="24" />
-        <Rect fill={colors.skyC} height="18" width="160" x="0" y="46" />
-        <Rect fill={colors.skyD} height="16" width="160" x="0" y="64" />
-        <Rect fill={colors.skyE} height="20" width="160" x="0" y="80" />
+        {/* Deep sky gradient bands */}
+        <Rect fill={colors.skyA} height="20" width="160" x="0" y="0" />
+        <Rect fill={colors.skyB} height="16" width="160" x="0" y="20" />
+        <Rect fill={colors.skyC} height="14" width="160" x="0" y="36" />
+        <Rect fill={colors.skyD} height="12" width="160" x="0" y="50" />
+        <Rect fill={colors.skyE} height="10" width="160" x="0" y="62" />
 
-        <Rect fill={colors.sunGlow} height="12" width="12" x="124" y={10 + sunFloatOffset} />
-        <Rect fill={colors.sunCore} height="8" width="8" x="126" y={12 + sunFloatOffset} />
+        {/* Warm horizon glow band */}
+        <Rect fill={colors.horizonMid} height="8" width="160" x="0" y="72" />
+        <Rect fill={colors.horizonGlow} height="6" width="160" x="0" y="80" />
 
-        <Rect fill={colors.cloudLight} height="6" width="28" x={16 + cloudOffsetOne} y="14" />
-        <Rect fill={colors.cloudLight} height="6" width="14" x={22 + cloudOffsetOne} y="8" />
-        <Rect fill={colors.cloudDark} height="4" width="10" x={34 + cloudOffsetOne} y="14" />
+        {/* Stars — sparse, twinkling */}
+        {STAR_POSITIONS.map(([sx, sy], i) => {
+          const isBright = (i + twinklePhase) % 5 === 0;
+          const opacity = isBright ? 0.7 : 0.3 + (i % 3) * 0.1;
+          return (
+            <Circle
+              key={`star-${i}`}
+              cx={sx}
+              cy={sy}
+              r={isBright ? 0.6 : 0.4}
+              fill={isBright ? colors.starBright : colors.starDim}
+              opacity={opacity}
+            />
+          );
+        })}
 
-        <Rect fill={colors.cloudLight} height="6" width="24" x={102 + cloudOffsetTwo} y="20" />
-        <Rect fill={colors.cloudLight} height="6" width="12" x={108 + cloudOffsetTwo} y="14" />
-        <Rect fill={colors.cloudDark} height="4" width="8" x={118 + cloudOffsetTwo} y="20" />
-
+        {/* Far ridgeline — jagged desert mountains */}
         <Polygon
-          fill={colors.mountainFar}
-          points="0,100 0,70 14,78 26,64 40,76 56,58 73,74 90,52 112,72 132,60 148,70 160,64 160,100"
+          fill={colors.ridgeFar}
+          points="0,100 0,78 8,82 16,74 28,80 38,70 50,76 64,66 78,74 92,62 108,72 120,68 136,76 148,72 160,78 160,100"
         />
 
+        {/* Near ridgeline — closer, darker */}
         <Polygon
-          fill={colors.mountainNear}
-          points="0,100 0,82 18,90 34,78 52,88 70,72 92,90 116,74 138,86 160,78 160,100"
+          fill={colors.ridgeNear}
+          points="0,100 0,86 12,88 24,82 38,86 52,80 68,86 84,78 100,84 118,80 134,86 148,82 160,86 160,100"
         />
 
-        <Rect fill={colors.ground} height="8" width="160" x="0" y="92" />
-        <Rect fill={colors.grassA} height="1" width="5" x="4" y="91" />
-        <Rect fill={colors.grassB} height="1" width="6" x="18" y="91" />
-        <Rect fill={colors.grassA} height="1" width="4" x="33" y="91" />
-        <Rect fill={colors.grassB} height="1" width="5" x="50" y="91" />
-        <Rect fill={colors.grassA} height="1" width="7" x="68" y="91" />
-        <Rect fill={colors.grassB} height="1" width="6" x="89" y="91" />
-        <Rect fill={colors.grassA} height="1" width="5" x="110" y="91" />
-        <Rect fill={colors.grassB} height="1" width="7" x="130" y="91" />
-        <Rect fill={colors.grassA} height="1" width="5" x="148" y="91" />
+        {/* Ground plane */}
+        <Rect fill={colors.groundMid} height="10" width="160" x="0" y="90" />
+        <Rect fill={colors.groundDark} height="4" width="160" x="0" y="96" />
 
-        <Rect fill="url(#pixelDither)" height="100" width="160" x="0" y="0" />
+        {/* Subtle noise overlay */}
+        <Rect fill="url(#pixelNoise)" height="100" width="160" x="0" y="0" />
       </Svg>
     </View>
   );

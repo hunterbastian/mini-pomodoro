@@ -37,18 +37,18 @@ export function StarburstActionButton({
         <Polygon
           fill={theme.colors.accentGlow}
           points={STARBURST_POINTS}
-          stroke={theme.colors.textPrimary}
+          stroke={theme.colors.accentSecondary}
           strokeLinejoin="round"
-          strokeWidth={4}
+          strokeWidth={2}
         />
       </Svg>
 
       <View style={styles.content}>
         <Svg height={48} viewBox="0 0 24 24" width={48}>
           {isRunning ? (
-            <Path d="M6 5h4v14H6zM14 5h4v14h-4z" fill={theme.colors.textPrimary} />
+            <Path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="#0a0c0f" />
           ) : (
-            <Path d="M8 5v14l11-7z" fill={theme.colors.textPrimary} />
+            <Path d="M8 5v14l11-7z" fill="#0a0c0f" />
           )}
         </Svg>
         <Text style={styles.label}>{label}</Text>
@@ -63,10 +63,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
-    color: theme.colors.textPrimary,
+    color: "#0a0c0f",
     fontFamily: theme.typography.heading,
     fontSize: 24,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     marginTop: 2,
     textTransform: "capitalize",
   },

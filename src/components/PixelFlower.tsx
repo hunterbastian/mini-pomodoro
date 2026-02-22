@@ -33,44 +33,44 @@ function bayer(col: number, row: number): number {
   return BAYER4[row & 3]![col & 3]! / 16;
 }
 
-/* ─── Palette ─────────────────────────────────────────────── */
-// Vase (clear glass, SDV-style)
-const GLASS_HI    = "#d0e8f8";   // specular highlight
-const GLASS_LT    = "#90c0e0";   // lit face
-const GLASS_MID   = "#5890c0";   // mid glass
-const GLASS_DK    = "#2a5888";   // shadow side
-const GLASS_RIM   = "#e8f4ff";   // top rim
-// Water inside
-const WATER_LT    = "#60a8e0";
-const WATER_DK    = "#3878b8";
-const WATER_SHINE = "#a0d0ff";
-// Stems
-const STEM_LT     = "#70b830";
-const STEM_DK     = "#3a7018";
-const LEAF_LT     = "#8acc40";
-const LEAF_MID    = "#58a020";
-const LEAF_DK     = "#307010";
-// Rose / pink flower
-const ROSE_LT     = "#f880b0";
-const ROSE_MID    = "#e04880";
-const ROSE_DK     = "#a02858";
-const ROSE_CENTER = "#601030";
-// Sunflower
-const SUN_LT      = "#fcd840";
-const SUN_MID     = "#f0a820";
-const SUN_DK      = "#c07010";
-const SUN_CENTER  = "#582808";
-const SUN_CTR_LT  = "#803818";
-// Wildflower / blue
-const BLUE_LT     = "#90b8f8";
-const BLUE_MID    = "#5080e0";
-const BLUE_DK     = "#3050a8";
+/* ─── Palette — ambient outpost tones ─────────────────────── */
+// Vase (dark glass vessel, faint amber tint)
+const GLASS_HI    = "#3a3228";   // specular highlight
+const GLASS_LT    = "#2a2620";   // lit face
+const GLASS_MID   = "#1e1a16";   // mid glass
+const GLASS_DK    = "#141210";   // shadow side
+const GLASS_RIM   = "#4a4038";   // top rim
+// Water inside (dark liquid)
+const WATER_LT    = "#1a2028";
+const WATER_DK    = "#10161e";
+const WATER_SHINE = "#2a3038";
+// Stems (muted greens)
+const STEM_LT     = "#3a5a3c";
+const STEM_DK     = "#1a2a1c";
+const LEAF_LT     = "#4a6a4c";
+const LEAF_MID    = "#2a4a2c";
+const LEAF_DK     = "#1a3018";
+// Rose / warm amber flower
+const ROSE_LT     = "#c8935a";
+const ROSE_MID    = "#9a6d3a";
+const ROSE_DK     = "#6a4a28";
+const ROSE_CENTER = "#3a2818";
+// Sunflower (amber signal)
+const SUN_LT      = "#e8b06a";
+const SUN_MID     = "#c8935a";
+const SUN_DK      = "#9a6d3a";
+const SUN_CENTER  = "#4a3020";
+const SUN_CTR_LT  = "#6a4a30";
+// Wildflower / pale blue
+const BLUE_LT     = "#4a5a70";
+const BLUE_MID    = "#3a4a60";
+const BLUE_DK     = "#2a3a50";
 // Tulip bud
-const TULIP_GREEN = "#50a028";
-const TULIP_PINK  = "#f060a0";
-const TULIP_DK    = "#c03870";
+const TULIP_GREEN = "#2a4a2c";
+const TULIP_PINK  = "#9a6d3a";
+const TULIP_DK    = "#6a4a28";
 // Sparkle
-const SPARKLE     = "#fff8c0";
+const SPARKLE     = "#e8b06a";
 
 type Color = string | null;
 type Grid  = Color[][];

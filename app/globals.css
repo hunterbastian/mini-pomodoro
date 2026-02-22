@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0c0f;
+  --color-surface: #141820;
+  --color-surface-muted: #1a1f2a;
+  --color-surface-elevated: #212736;
+
+  --color-accent: #c8935a;
+  --color-accent-secondary: #9a6d3a;
+  --color-accent-glow: #e8b06a;
+
+  --color-accent-green: #5a8a5c;
+  --color-accent-stone: #4a4540;
+
+  --color-foreground: #d8d0c4;
+  --color-foreground-secondary: #8a8278;
+  --color-foreground-muted: #5c564e;
+
+  --color-border: #2a2e38;
+  --color-border-subtle: #22262e;
+  --color-border-highlight: #3a3228;
+
+  --color-danger: #a04030;
+
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-mono);
+}
+
+/* Custom scrollbar for the ambient feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-foreground-muted);
+}
+
+/* Ambient glow keyframes */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes signal-blink {
+  0%, 40%, 100% { opacity: 0.3; }
+  50%, 90% { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-signal-blink {
+  animation: signal-blink 3s ease-in-out infinite;
+}

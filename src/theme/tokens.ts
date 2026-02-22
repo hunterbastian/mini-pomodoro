@@ -8,53 +8,54 @@ const monoFont =
   }) ?? "monospace";
 
 /* ─────────────────────────────────────────────────────────
- * Stardew-inspired palette
+ * Ambient Outpost palette
  *
- * Daylight sky + warm wood + fresh greens.
- * Bright and cozy, with high-contrast game-like panel edges.
+ * Deep void blacks + warm amber signals + muted steel.
+ * Like a lone control panel humming in a remote desert station
+ * at night. Quiet, moody, atmospheric.
  * ───────────────────────────────────────────────────────── */
 export const theme = {
   colors: {
-    // Daytime sky + wood panels
-    background:      "#8fc7ff",
-    surface:         "#f5d9aa",
-    surfaceMuted:    "#e8bf7d",
-    surfaceElevated: "#d7a86b",
+    // Deep void backgrounds
+    background:      "#0a0c0f",
+    surface:         "#141820",
+    surfaceMuted:    "#1a1f2a",
+    surfaceElevated: "#212736",
 
-    // Main accents
-    accent:          "#5f9238",
-    accentSecondary: "#3f6a24",
-    accentGlow:      "#f4cf63",
+    // Warm amber signal accents
+    accent:          "#c8935a",
+    accentSecondary: "#9a6d3a",
+    accentGlow:      "#e8b06a",
 
-    // Supporting naturals
-    accentGreen:      "#79a84f",
-    accentGreenBright:"#95c562",
-    accentStone:      "#8f6b40",
+    // Supporting tones
+    accentGreen:      "#5a8a5c",
+    accentGreenBright:"#7aaa6c",
+    accentStone:      "#4a4540",
 
-    // Text: dark walnut, readable against warm surfaces
-    textPrimary:      "#2c1e11",
-    textSecondary:    "#5a3b1d",
-    textMuted:        "#8a673f",
+    // Text: pale cream to muted steel, readable on dark
+    textPrimary:      "#d8d0c4",
+    textSecondary:    "#8a8278",
+    textMuted:        "#5c564e",
 
-    // Borders: carved, game-like outlines
-    border:           "#6a4a2a",
-    borderSubtle:     "#9d6f3e",
-    borderHighlight:  "#f9e6ac",
+    // Borders: thin, low-contrast outlines
+    border:           "#2a2e38",
+    borderSubtle:     "#22262e",
+    borderHighlight:  "#3a3228",
 
     // States
-    danger:           "#a23b25",
-    overlay:          "rgba(20, 33, 54, 0.58)",
+    danger:           "#a04030",
+    overlay:          "rgba(0, 0, 0, 0.72)",
 
-    // Ambient tones
-    glowA:            "#c5e2ff",
-    glowB:            "#96d478",
-    glowWarm:         "#ffe8a8",
-    glowShadow:       "rgba(66, 42, 18, 0.2)",
+    // Ambient glows
+    glowA:            "rgba(200, 147, 90, 0.06)",
+    glowB:            "rgba(90, 138, 92, 0.04)",
+    glowWarm:         "rgba(232, 176, 106, 0.12)",
+    glowShadow:       "rgba(0, 0, 0, 0.4)",
   },
   radius: {
-    lg:   12,
-    md:   8,
-    sm:   4,
+    lg:   10,
+    md:   6,
+    sm:   3,
     pill: 999,
   },
   spacing: {

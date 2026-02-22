@@ -1,16 +1,16 @@
 /* ─────────────────────────────────────────────────────────
- * DitherArt — Stardew Valley style landscape banner
+ * DitherArt — Ambient Outpost style landscape banner
  *
- * Scene (left → right):
- *   Sky with warm sunrise gradient + dithered clouds
- *   Rolling green hills, path, wooden fence
- *   Left: cottage with red roof, chimney, warm window glow
- *   Center: textured field rows with colorful patches
- *   Right: oak tree, small bird, sunflower
- *   Foreground: grass tuft, wildflowers
+ * Scene (left -> right):
+ *   Dark sky with sparse stars, faint amber horizon glow
+ *   Distant mesa ridgeline
+ *   Left: radio tower with blinking signal light
+ *   Center: low outpost structure with warm window glow
+ *   Right: antenna dish, distant power lines
+ *   Foreground: dark desert floor with scattered rocks
  *
- * Canvas: 80 × 26 pixels, PIXEL = 4 px → 320 × 104 rendered
- * Palette: warm SDV-style earthy tones
+ * Canvas: 80 x 26 pixels, PIXEL = 4 -> 320 x 104 rendered
+ * Palette: deep voids + warm amber signals
  * ───────────────────────────────────────────────────────── */
 
 import { View } from "react-native";
@@ -20,7 +20,7 @@ const PIXEL = 4;
 const W     = 80;
 const H     = 26;
 
-/* ─── Bayer 4×4 ──────────────────────────────────────────── */
+/* --- Bayer 4x4 ------------------------------------------ */
 const BAYER4 = [
   [ 0,  8,  2, 10],
   [12,  4, 14,  6],
@@ -31,61 +31,45 @@ function bayer(col: number, row: number): number {
   return BAYER4[row & 3]![col & 3]! / 16;
 }
 
-/* ─── Palette ─────────────────────────────────────────────── */
+/* --- Palette --------------------------------------------- */
 // Sky
-const SKY_TOP     = "#78b6ff";   // bright midday sky
-const SKY_MID     = "#9fd2ff";   // soft valley blue
-const SKY_HORIZON = "#d8f0ff";   // pale morning haze
-// Clouds
-const CLOUD_LT    = "#ffffff";
-const CLOUD_DK    = "#d7ecff";
+const SKY_DEEP    = "#060810";
+const SKY_MID     = "#0a0e18";
+const SKY_LOW     = "#10141e";
+// Horizon
+const HORIZON_DIM = "#1a1510";
+const HORIZON_GLO = "#2a1e14";
+const HORIZON_AMB = "#3a2a1a";
+// Stars
+const STAR_DIM    = "#3a3830";
+const STAR_BRT    = "#7a6e58";
+// Ridgeline
+const MESA_FAR    = "#12151c";
+const MESA_NEAR   = "#0e1218";
 // Ground
-const HILL_GRASS  = "#6eae45";
-const HILL_SHADOW = "#518536";
-const HILL_DARK   = "#3f6d2a";
-const DIRT_PATH   = "#b88953";
-const DIRT_SHADOW = "#8d6437";
-// Cottage
-const ROOF_MAIN   = "#c54c2b";   // red SDV roof
-const ROOF_SHADOW = "#88321a";
-const WALL_MAIN   = "#f2d29f";   // warm cream wall
-const WALL_SHADOW = "#c59a5d";
-const WINDOW_GLOW = "#ffd86c";   // warm candlelight
-const WINDOW_DK   = "#d39f34";
-const CHIMNEY     = "#6d533c";
-const SMOKE       = "#b6c8db";
-// Field patches
-const SOIL        = "#8b5a2e";
-const SOIL_DK     = "#6d4321";
-const CROP_GREEN  = "#6cbf3b";
-const CROP_SHADOW = "#3f7f22";
-const WHEAT_GOLD  = "#e3ba45";
-const WHEAT_LT    = "#f5d87a";
-const PUMPKIN     = "#d67b28";
-const PUMPKIN_LT  = "#f3a045";
-const TURNIP_LT   = "#edd7ff";
-const TURNIP_DK   = "#bea1d8";
-// Fence
-const FENCE_WOOD  = "#d8a45a";
-const FENCE_SHADOW= "#9a6a33";
-// Tree
-const TREE_TRUNK  = "#7e5329";
-const TREE_BARK   = "#5d3a1b";
-const LEAF_A      = "#5da33a";
-const LEAF_B      = "#447b2b";
-const LEAF_C      = "#75bf46";
-// Sunflower
-const SUNPETAL    = "#f6cf3e";
-const SUNPETAL_DK = "#d9a925";
-const SUNCENTER   = "#6a3510";
-// Chicken
-const CHKN_WHITE  = "#fcf7ee";
-const CHKN_RED    = "#d64a3a";
-const CHKN_BEAK   = "#f2aa35";
-// Wildflower
-const FLOWER_A    = "#f07ba8";   // pink
-const FLOWER_B    = "#8b78dc";   // lavender
-const FLOWER_STEM = "#4e8d2b";
+const GROUND_A    = "#0c0f14";
+const GROUND_B    = "#080a0d";
+const ROCK_A      = "#1a1e28";
+const ROCK_B      = "#141820";
+// Outpost structure
+const WALL_MAIN   = "#181c24";
+const WALL_DARK   = "#10141a";
+const WALL_LIT    = "#1e222c";
+const ROOF_MAIN   = "#14181e";
+const ROOF_EDGE   = "#0e1016";
+// Warm signal lights
+const SIGNAL_AMB  = "#c8935a";
+const SIGNAL_DIM  = "#9a6d3a";
+const WINDOW_GLO  = "#e8b06a";
+const WINDOW_DIM  = "#a07840";
+// Tower
+const TOWER_METAL = "#1e222a";
+const TOWER_DARK  = "#141820";
+// Antenna dish
+const DISH_LT     = "#22262e";
+const DISH_DK     = "#181c24";
+// Power line
+const WIRE_COL    = "#1a1e24";
 
 type Color = string | null;
 type Grid  = Color[][];
@@ -113,234 +97,160 @@ function dith(g: Grid, x0: number, y0: number, x1: number, y1: number, ca: Color
 function buildScene(): Grid {
   const g = make();
 
-  /* ── Sky gradient ──────────────────────────────────────── */
-  for (let y = 0; y < 14; y++) {
-    const frac = y / 13;
+  /* -- Sky gradient ---------------------------------------- */
+  for (let y = 0; y < 16; y++) {
+    const frac = y / 15;
     for (let x = 0; x < W; x++) {
       const t = bayer(x, y);
-      if (frac < 0.3) {
-        p(g, x, y, t < frac / 0.3 + 0.1 ? SKY_MID : SKY_TOP);
-      } else if (frac < 0.7) {
-        const sub = (frac - 0.3) / 0.4;
-        p(g, x, y, t < sub ? SKY_HORIZON : SKY_MID);
+      if (frac < 0.35) {
+        p(g, x, y, t < 0.4 ? SKY_DEEP : SKY_DEEP);
+      } else if (frac < 0.65) {
+        p(g, x, y, t < frac ? SKY_MID : SKY_DEEP);
       } else {
-        p(g, x, y, t < 0.55 ? SKY_HORIZON : SKY_MID);
+        p(g, x, y, t < 0.5 ? SKY_LOW : SKY_MID);
       }
     }
   }
 
-  /* ── Clouds (fluffy blobs) ─────────────────────────────── */
-  // Cloud 1: top-right area
-  const cloud1: [number, number][] = [
-    [55,2],[56,2],[57,2],[58,2],
-    [54,3],[55,3],[56,3],[57,3],[58,3],[59,3],[60,3],
-    [55,4],[56,4],[57,4],[58,4],[59,4],
-  ];
-  for (const [cx, cy] of cloud1)
-    p(g, cx, cy, bayer(cx, cy) < 0.6 ? CLOUD_LT : CLOUD_DK);
-
-  // Cloud 2: left
-  const cloud2: [number, number][] = [
-    [8,1],[9,1],[10,1],
-    [7,2],[8,2],[9,2],[10,2],[11,2],[12,2],
-    [8,3],[9,3],[10,3],[11,3],
-  ];
-  for (const [cx, cy] of cloud2)
-    p(g, cx, cy, bayer(cx, cy) < 0.55 ? CLOUD_LT : CLOUD_DK);
-
-  /* ── Rolling hills (background) ───────────────────────── */
-  // Far hill - row 11–13
+  /* -- Horizon glow bands ---------------------------------- */
   for (let x = 0; x < W; x++) {
-    const h = Math.round(2 * Math.sin(x * 0.09 + 0.5) + 0.8 * Math.sin(x * 0.17));
-    for (let y = 12 - Math.max(0, h); y <= 13; y++) {
-      p(g, x, y, bayer(x, y) < 0.45 ? HILL_SHADOW : HILL_DARK);
-    }
+    p(g, x, 16, bayer(x, 16) < 0.6 ? HORIZON_DIM : SKY_LOW);
+    p(g, x, 17, bayer(x, 17) < 0.5 ? HORIZON_GLO : HORIZON_DIM);
+    p(g, x, 18, bayer(x, 18) < 0.4 ? HORIZON_AMB : HORIZON_GLO);
   }
 
-  /* ── Ground base rows 14–25 ────────────────────────────── */
-  dith(g, 0, 14, W - 1, 15, HILL_GRASS, HILL_SHADOW, 0.55);
-  dith(g, 0, 16, W - 1, 17, HILL_SHADOW, HILL_DARK, 0.5);
-  fill(g, 0, 18, W - 1, 25, HILL_DARK);
-
-  /* ── Tilled soil rows (field area x=28–55, rows 18–24) ── */
-  for (let y = 18; y <= 24; y++) {
-    for (let x = 28; x <= 55; x++) {
-      p(g, x, y, bayer(x, y) < 0.45 ? SOIL : SOIL_DK);
-    }
-  }
-  // Soil tilling lines
-  for (let x = 28; x <= 55; x += 4) {
-    vline(g, x, 18, 24, SOIL_DK);
-  }
-
-  /* ── Dirt path (center bottom, cols 36–44, rows 23–25) ── */
-  dith(g, 36, 23, 44, 25, DIRT_PATH, DIRT_SHADOW, 0.55);
-
-  /* ── COTTAGE (cols 2–18, rows 10–24) ───────────────────── */
-  // Chimney (col 6, rows 8–11)
-  fill(g, 6, 8, 7, 11, CHIMNEY);
-  p(g, 6, 7, bayer(6,7)<0.5 ? SMOKE : null);
-  p(g, 7, 6, bayer(7,6)<0.4 ? SMOKE : null);
-  p(g, 8, 5, bayer(8,5)<0.3 ? SMOKE : null);
-
-  // Roof (triangle, rows 10–13)
-  for (let y = 10; y <= 13; y++) {
-    const half = (13 - y) * 2 + 1;
-    const cx = 10;
-    const x0 = cx - half;
-    const x1 = cx + half;
-    for (let x = x0; x <= x1; x++) {
-      const edge = (x === x0 || x === x1);
-      if (y === 10) {
-        p(g, x, y, ROOF_SHADOW);
-      } else {
-        p(g, x, y, edge ? ROOF_SHADOW : (bayer(x,y)<0.6 ? ROOF_MAIN : ROOF_SHADOW));
-      }
-    }
-  }
-  // Roof ridge trim
-  hline(g, 9, 11, 10, WALL_MAIN);
-
-  // Walls (cols 3–17, rows 14–24)
-  for (let y = 14; y <= 24; y++) {
-    for (let x = 3; x <= 17; x++) {
-      const shadow = x <= 4 || x >= 16;
-      p(g, x, y, shadow ? WALL_SHADOW : (bayer(x,y)<0.5 ? WALL_MAIN : WALL_SHADOW));
-    }
-  }
-
-  // Windows (left: col 4–6 row 15–17, right: col 13–15 row 15–17)
-  for (let wy = 15; wy <= 17; wy++) {
-    for (let wx = 4; wx <= 6; wx++) {
-      p(g, wx, wy, bayer(wx,wy)<0.65 ? WINDOW_GLOW : WINDOW_DK);
-    }
-    for (let wx = 13; wx <= 15; wx++) {
-      p(g, wx, wy, bayer(wx,wy)<0.65 ? WINDOW_GLOW : WINDOW_DK);
-    }
-  }
-  // Window frame
-  hline(g, 4, 6, 14, WALL_SHADOW); hline(g, 4, 6, 18, WALL_SHADOW);
-  vline(g, 3, 15, 17, WALL_SHADOW); vline(g, 7, 15, 17, WALL_SHADOW);
-  hline(g, 13, 15, 14, WALL_SHADOW); hline(g, 13, 15, 18, WALL_SHADOW);
-  vline(g, 12, 15, 17, WALL_SHADOW); vline(g, 16, 15, 17, WALL_SHADOW);
-
-  // Door (col 9–11, rows 20–24)
-  fill(g, 9, 20, 11, 24, WALL_SHADOW);
-  p(g, 9, 20, ROOF_SHADOW); p(g, 11, 20, ROOF_SHADOW);
-  // Door knob
-  p(g, 11, 22, WHEAT_GOLD);
-
-  /* ── Wooden fence (cols 19–27, rows 18–21) ─────────────── */
-  // Posts
-  for (let x = 19; x <= 27; x += 4) {
-    vline(g, x, 17, 22, FENCE_WOOD);
-    p(g, x, 17, FENCE_SHADOW);
-  }
-  // Rails
-  hline(g, 19, 27, 18, FENCE_WOOD);
-  hline(g, 19, 27, 20, FENCE_WOOD);
-  hline(g, 19, 27, 22, FENCE_SHADOW);
-
-  /* ── Field details ─────────────────────────────────────── */
-  // Wheat stalks (cols 28–34, rows 15–21)
-  for (let x = 29; x <= 34; x += 3) {
-    vline(g, x, 17, 21, CROP_GREEN);
-    // Wheat head
-    p(g, x,   16, WHEAT_GOLD);
-    p(g, x-1, 16, bayer(x-1,16)<0.5 ? WHEAT_GOLD : WHEAT_LT);
-    p(g, x+1, 16, bayer(x+1,16)<0.5 ? WHEAT_GOLD : null);
-    p(g, x,   15, bayer(x,15)<0.6 ? WHEAT_LT : WHEAT_GOLD);
-  }
-
-  // Turnips (cols 38–43, rows 19–21) — purple bulbs
-  for (let x = 38; x <= 43; x += 3) {
-    p(g, x,   19, CROP_GREEN); p(g, x, 20, CROP_GREEN);
-    dith(g, x-1, 21, x+1, 22, TURNIP_LT, TURNIP_DK, 0.55);
-    p(g, x, 20, CROP_SHADOW);
-  }
-
-  // Pumpkin (cols 47–51, rows 21–23)
-  dith(g, 47, 21, 51, 23, PUMPKIN_LT, PUMPKIN, 0.5);
-  p(g, 49, 20, CROP_GREEN); // stem
-  // Pumpkin ribs
-  vline(g, 49, 21, 23, PUMPKIN);
-  p(g, 47, 21, PUMPKIN); p(g, 51, 21, PUMPKIN);
-  p(g, 47, 23, PUMPKIN); p(g, 51, 23, PUMPKIN);
-
-  /* ── OAK TREE (cols 58–68, rows 8–24) ─────────────────── */
-  // Trunk (col 62–63, rows 19–24)
-  for (let y = 19; y <= 24; y++) {
-    p(g, 62, y, bayer(62,y)<0.6 ? TREE_TRUNK : TREE_BARK);
-    p(g, 63, y, TREE_BARK);
-  }
-  // Canopy (irregular blob)
-  const canopyPixels: [number, number][] = [
-    [60,8],[61,8],[62,8],[63,8],[64,8],
-    [58,9],[59,9],[60,9],[61,9],[62,9],[63,9],[64,9],[65,9],[66,9],
-    [57,10],[58,10],[59,10],[60,10],[61,10],[62,10],[63,10],[64,10],[65,10],[66,10],[67,10],
-    [57,11],[58,11],[59,11],[60,11],[61,11],[62,11],[63,11],[64,11],[65,11],[66,11],[67,11],
-    [58,12],[59,12],[60,12],[61,12],[62,12],[63,12],[64,12],[65,12],[66,12],[67,12],
-    [59,13],[60,13],[61,13],[62,13],[63,13],[64,13],[65,13],[66,13],
-    [60,14],[61,14],[62,14],[63,14],[64,14],[65,14],
-    [61,15],[62,15],[63,15],[64,15],
-    [62,16],[63,16],
+  /* -- Stars (sparse, scattered across sky) ---------------- */
+  const starPositions: [number, number][] = [
+    [5,2], [14,4], [22,1], [31,6], [38,3],
+    [47,5], [55,2], [63,7], [72,4], [78,1],
+    [10,9], [26,8], [42,10], [58,11], [69,9],
+    [18,13], [50,12], [75,13],
   ];
-  for (const [cx, cy] of canopyPixels) {
-    const edge = (cy === 8 || cy === 16 || cx === 57 || cx === 67);
-    p(g, cx, cy, edge ? LEAF_B : (bayer(cx,cy) < 0.45 ? LEAF_A : bayer(cx,cy) < 0.7 ? LEAF_C : LEAF_B));
-  }
-  // Leaf shadow on right side
-  for (const [cx, cy] of canopyPixels) {
-    if (cx >= 65) p(g, cx, cy, bayer(cx,cy)<0.4 ? LEAF_B : LEAF_A);
+  for (const [sx, sy] of starPositions) {
+    const bright = bayer(sx, sy) < 0.35;
+    p(g, sx, sy, bright ? STAR_BRT : STAR_DIM);
   }
 
-  /* ── SUNFLOWER (col 70–72, rows 15–24) ─────────────────── */
-  // Stem
-  vline(g, 71, 19, 24, FLOWER_STEM);
-  p(g, 70, 21, LEAF_A);  p(g, 72, 22, LEAF_A); // leaves
-  // Petals
-  const sunPetals: [number, number][] = [
-    [71,15],[70,16],[72,16],[69,17],[73,17],[70,18],[72,18],[71,19],
-  ];
-  for (const [sx, sy] of sunPetals) {
-    p(g, sx, sy, bayer(sx,sy)<0.55 ? SUNPETAL : SUNPETAL_DK);
-  }
-  // Center
-  dith(g, 70, 16, 72, 18, SUNCENTER, "#3a1804", 0.5);
-  p(g, 71, 17, SUNCENTER);
-
-  /* ── CHICKEN (col 74–77, rows 20–24) ───────────────────── */
-  // Body
-  dith(g, 74, 21, 77, 24, CHKN_WHITE, "#d8d0c0", 0.55);
-  // Head (col 76–77, rows 19–21)
-  dith(g, 76, 19, 77, 21, CHKN_WHITE, "#d8d0c0", 0.6);
-  // Comb
-  p(g, 76, 18, CHKN_RED); p(g, 77, 18, CHKN_RED);
-  // Beak
-  p(g, 78, 20, CHKN_BEAK);
-  // Eye
-  p(g, 77, 19, "#1a1010");
-  // Wing crease
-  hline(g, 74, 76, 22, "#b8b0a0");
-  // Feet
-  p(g, 74, 25, CHKN_BEAK); p(g, 76, 25, CHKN_BEAK);
-
-  /* ── Wildflowers foreground (scattered) ─────────────────── */
-  const flowers: [number, number, Color][] = [
-    [2, 24, FLOWER_A], [21, 24, FLOWER_B], [56, 24, FLOWER_A],
-    [69, 24, FLOWER_B], [79, 24, FLOWER_A],
-  ];
-  for (const [fx, fy, fc] of flowers) {
-    p(g, fx, fy,     fc);
-    p(g, fx, fy + 1, FLOWER_STEM);
-  }
-
-  /* ── Grass tufts on foreground row ──────────────────────── */
-  for (let x = 0; x < W; x += 5) {
-    if (bayer(x, 24) < 0.5) {
-      p(g, x,   23, HILL_GRASS);
-      p(g, x+1, 22, HILL_GRASS);
+  /* -- Far mesa ridgeline ---------------------------------- */
+  for (let x = 0; x < W; x++) {
+    const h = Math.round(1.5 * Math.sin(x * 0.08 + 1.2) + 0.6 * Math.sin(x * 0.19 + 0.4));
+    for (let y = 17 - Math.max(0, h); y <= 18; y++) {
+      p(g, x, y, MESA_FAR);
     }
+  }
+
+  /* -- Near ridgeline -------------------------------------- */
+  for (let x = 0; x < W; x++) {
+    const h = Math.round(1.2 * Math.sin(x * 0.12 + 2.8) + 0.5 * Math.sin(x * 0.22));
+    for (let y = 19 - Math.max(0, h); y <= 19; y++) {
+      p(g, x, y, MESA_NEAR);
+    }
+  }
+
+  /* -- Ground base rows 19-25 ------------------------------ */
+  dith(g, 0, 19, W - 1, 20, GROUND_A, GROUND_B, 0.55);
+  fill(g, 0, 21, W - 1, 25, GROUND_B);
+  dith(g, 0, 21, W - 1, 22, GROUND_A, GROUND_B, 0.4);
+
+  /* -- Scattered rocks ------------------------------------- */
+  const rocks: [number, number][] = [
+    [6, 22], [19, 23], [34, 21], [52, 22], [66, 23], [74, 21],
+  ];
+  for (const [rx, ry] of rocks) {
+    p(g, rx, ry, ROCK_A);
+    p(g, rx + 1, ry, ROCK_B);
+    p(g, rx, ry + 1, ROCK_B);
+  }
+
+  /* -- RADIO TOWER (cols 4-8, rows 6-20) ------------------- */
+  // Vertical mast
+  vline(g, 6, 8, 20, TOWER_METAL);
+  vline(g, 7, 10, 20, TOWER_DARK);
+  // Cross struts
+  hline(g, 4, 9, 12, TOWER_DARK);
+  hline(g, 5, 8, 16, TOWER_DARK);
+  // Diagonal bracing (simplified)
+  p(g, 5, 10, TOWER_DARK); p(g, 8, 10, TOWER_DARK);
+  p(g, 5, 14, TOWER_DARK); p(g, 8, 14, TOWER_DARK);
+  // Signal light at top (warm amber blink)
+  p(g, 6, 7, SIGNAL_AMB);
+  p(g, 6, 6, SIGNAL_DIM);
+  // Faint glow around signal
+  p(g, 5, 7, HORIZON_GLO); p(g, 7, 7, HORIZON_GLO);
+
+  /* -- OUTPOST BUILDING (cols 28-52, rows 14-24) ----------- */
+  // Main low structure
+  fill(g, 28, 16, 52, 24, WALL_MAIN);
+  // Roof edge
+  hline(g, 27, 53, 15, ROOF_EDGE);
+  hline(g, 28, 52, 16, ROOF_MAIN);
+  // Wall variation
+  for (let y = 17; y <= 24; y++) {
+    for (let x = 28; x <= 52; x++) {
+      const edge = x <= 29 || x >= 51;
+      p(g, x, y, edge ? WALL_DARK : (bayer(x,y) < 0.45 ? WALL_LIT : WALL_MAIN));
+    }
+  }
+
+  // Windows (warm amber glow)
+  // Window 1 (cols 31-33, rows 18-20)
+  for (let wy = 18; wy <= 20; wy++) {
+    for (let wx = 31; wx <= 33; wx++) {
+      p(g, wx, wy, bayer(wx,wy) < 0.6 ? WINDOW_GLO : WINDOW_DIM);
+    }
+  }
+  // Window 2 (cols 37-39, rows 18-20)
+  for (let wy = 18; wy <= 20; wy++) {
+    for (let wx = 37; wx <= 39; wx++) {
+      p(g, wx, wy, bayer(wx,wy) < 0.55 ? WINDOW_GLO : WINDOW_DIM);
+    }
+  }
+  // Window 3 (cols 44-46, rows 18-20)
+  for (let wy = 18; wy <= 20; wy++) {
+    for (let wx = 44; wx <= 46; wx++) {
+      p(g, wx, wy, bayer(wx,wy) < 0.5 ? WINDOW_DIM : WALL_LIT);
+    }
+  }
+
+  // Door (cols 48-50, rows 21-24)
+  fill(g, 48, 21, 50, 24, WALL_DARK);
+  // Door light
+  p(g, 49, 21, SIGNAL_DIM);
+
+  /* -- ANTENNA DISH (cols 60-68, rows 10-18) --------------- */
+  // Dish (curved shape)
+  const dishPixels: [number, number][] = [
+    [63,10],[64,10],[65,10],
+    [62,11],[63,11],[64,11],[65,11],[66,11],
+    [61,12],[62,12],[63,12],[64,12],[65,12],[66,12],[67,12],
+    [61,13],[62,13],[67,13],
+    [62,14],[66,14],
+  ];
+  for (const [dx, dy] of dishPixels) {
+    p(g, dx, dy, bayer(dx, dy) < 0.5 ? DISH_LT : DISH_DK);
+  }
+  // Support pole
+  vline(g, 64, 14, 22, TOWER_METAL);
+  vline(g, 65, 16, 22, TOWER_DARK);
+  // Base
+  hline(g, 63, 66, 22, TOWER_DARK);
+
+  /* -- POWER LINES (right edge, cols 72-78) ---------------- */
+  // Poles
+  vline(g, 73, 12, 22, WIRE_COL);
+  vline(g, 78, 14, 22, WIRE_COL);
+  // Wire (slightly sagging)
+  hline(g, 73, 78, 13, WIRE_COL);
+  p(g, 75, 14, WIRE_COL); p(g, 76, 14, WIRE_COL);
+  // Small signal on pole top
+  p(g, 73, 11, SIGNAL_DIM);
+
+  /* -- Ambient light spill from windows onto ground -------- */
+  for (let x = 30; x <= 34; x++) {
+    p(g, x, 21, bayer(x, 21) < 0.3 ? HORIZON_GLO : GROUND_A);
+  }
+  for (let x = 36; x <= 40; x++) {
+    p(g, x, 21, bayer(x, 21) < 0.25 ? HORIZON_DIM : GROUND_A);
   }
 
   return g;
@@ -371,8 +281,8 @@ export function DitherArt({ width = 320 }: Props) {
         style={{ transform: [{ scale }], transformOrigin: "top left" } as object}
         viewBox={`0 0 ${svgW} ${svgH}`}
       >
-        {/* Sky base fill */}
-        <Rect x={0} y={0} width={svgW} height={svgH} fill={SKY_TOP} />
+        {/* Deep sky base fill */}
+        <Rect x={0} y={0} width={svgW} height={svgH} fill={SKY_DEEP} />
 
         {rects.map((r, i) => (
           <Rect key={i} x={r.x} y={r.y} width={PIXEL} height={PIXEL} fill={r.fill} />
@@ -380,7 +290,7 @@ export function DitherArt({ width = 320 }: Props) {
 
         {/* Subtle scanlines */}
         {Array.from({ length: H }, (_, i) => (
-          <Rect key={`sl-${i}`} x={0} y={i * PIXEL + PIXEL - 1} width={svgW} height={1} fill="#000" opacity={0.08} />
+          <Rect key={`sl-${i}`} x={0} y={i * PIXEL + PIXEL - 1} width={svgW} height={1} fill="#000" opacity={0.12} />
         ))}
       </Svg>
     </View>

@@ -598,10 +598,10 @@ export function TimerScreen() {
 
 const styles = StyleSheet.create({
   breatherCopy: {
-    color: "#7a6d58",
+    color: theme.colors.textMuted,
     fontFamily: theme.typography.body,
     fontSize: 11,
-    letterSpacing: 0.4,
+    letterSpacing: 1.2,
     marginBottom: theme.spacing.md,
     textAlign: "center",
     textTransform: "uppercase",
@@ -656,9 +656,9 @@ const styles = StyleSheet.create({
   modalCard: {
     alignItems: "center",
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.textPrimary,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
-    borderWidth: 2,
+    borderWidth: 1,
     maxWidth: 420,
     padding: theme.spacing.lg,
     width: "100%",
@@ -668,13 +668,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accent,
     borderColor: theme.colors.accentSecondary,
     borderRadius: theme.radius.md,
-    borderWidth: 2,
+    borderWidth: 1,
     flex: 1,
     justifyContent: "center",
     minHeight: 46,
   },
   modalPrimaryButtonText: {
-    color: theme.colors.surface,
+    color: "#0a0c0f",
     fontFamily: theme.typography.heading,
     fontSize: 13,
     letterSpacing: 0.5,
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceMuted,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
-    borderWidth: 2,
+    borderWidth: 1,
     flex: 1,
     justifyContent: "center",
     minHeight: 46,
@@ -715,8 +715,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   modeChipActive: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderColor: theme.colors.border,
+    backgroundColor: "rgba(200, 147, 90, 0.12)",
+    borderColor: theme.colors.accent,
   },
   modeChipPressed: {
     opacity: 0.82,
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   modeChipTextActive: {
-    color: theme.colors.textPrimary,
+    color: theme.colors.accent,
   },
   modeRow: {
     flexDirection: "row",
@@ -746,8 +746,8 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   panel: {
-    backgroundColor: "rgba(250, 245, 235, 0.95)",
-    borderColor: "rgba(126, 103, 74, 0.38)",
+    backgroundColor: "rgba(20, 24, 32, 0.88)",
+    borderColor: "rgba(42, 46, 56, 0.6)",
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     maxWidth: 650,
@@ -769,10 +769,10 @@ const styles = StyleSheet.create({
     opacity: 0.86,
   },
   primaryButtonText: {
-    color: theme.colors.surface,
+    color: "#0a0c0f",
     fontFamily: theme.typography.heading,
     fontSize: 15,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
   questSection: {
@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
   resetButton: {
     alignItems: "center",
     backgroundColor: "transparent",
-    borderColor: theme.colors.borderSubtle,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
     borderWidth: 1,
     justifyContent: "center",
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   root: {
-    backgroundColor: "#edf2f5",
+    backgroundColor: theme.colors.background,
     flex: 1,
   },
   sectionLabel: {
